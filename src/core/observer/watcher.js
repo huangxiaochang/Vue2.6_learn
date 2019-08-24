@@ -134,7 +134,7 @@ export default class Watcher {
 
   /**
    * Add a dependency to this directive.
-   * 把自身watcher添加到对象的dep中
+   * 往依赖的响应式数据dep中添加自己，并且在自己的dep中收集该响应式的dep
    */
   addDep (dep: Dep) {
     const id = dep.id
@@ -179,6 +179,7 @@ export default class Watcher {
   update () {
     /* istanbul ignore else */
     if (this.lazy) {
+      // 响应式数据发生变化时，把dirty标记成true,表明下一次有访问该计算属性时，需要进行重新的求值。
       this.dirty = true
     } else if (this.sync) {
       // 进行同步求值
@@ -192,6 +193,8 @@ export default class Watcher {
   /**
    * Scheduler job interface.
    * Will be called by the scheduler.
+   * 该方法会在watcher队列中刷新watcher时被执行。
+   * 正常情况下，会在下一次事件循环中执行。
    */
   run () {
     if (this.active) {
@@ -223,17 +226,23 @@ export default class Watcher {
   /**
    * Evaluate the value of the watcher.
    * This only gets called for lazy watchers.
+   * 这里只有计算属性才会调用该方法来进行求值。
    */
   evaluate () {
     this.value = this.get()
+    // 把dirty设置成false，表明已经进行求值过
     this.dirty = false
   }
 
   /**
    * Depend on all deps collected by this watcher.
-   * 计算属性watcher会调用该方法
+   * 计算属性watcher会调用该方法，即会把依赖该计算属性的watcher添加到计算属性依赖的
+   * 响应式数据的dep中。
    */
   depend () {
+    // 因为在访问计算属性时，首先会调用watcher.evaluate()，这样计算属性watcher会添加进响应式属性的
+    // dep中，同时也会在改计算属性watcher的dep属性中收集了响应式属性的dep。所以当调用watcher.depend()
+    // 时，this.deps中的dep即为计算属性依赖的响应式属性的dep.
     let i = this.deps.length
     while (i--) {
       this.deps[i].depend()

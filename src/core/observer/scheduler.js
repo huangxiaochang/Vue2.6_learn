@@ -87,13 +87,17 @@ function flushSchedulerQueue () {
   // as we run existing watchers
   for (index = 0; index < queue.length; index++) {
     watcher = queue[index]
+    // 执行watcher的before钩子
     if (watcher.before) {
       watcher.before()
     }
     id = watcher.id
     has[id] = null
+    // 执行watcher获取变化后的值，然后执行相应的回调，如更新视图，执行watch开发者回调等。
     watcher.run()
     // in dev build, check and stop circular updates.
+    // 因为在上面执行watcher.run()前，已经has[id] = null，所以如果在watcher.run()再添加进队列，
+    // ，此时has[id] != null，则是循环调用
     if (process.env.NODE_ENV !== 'production' && has[id] != null) {
       circular[id] = (circular[id] || 0) + 1
       if (circular[id] > MAX_UPDATE_COUNT) {
@@ -118,6 +122,7 @@ function flushSchedulerQueue () {
 
   // call component updated and activated hooks
   callActivatedHooks(activatedQueue)
+  // 执行重新render的组件vm的updated生命钩子函数
   callUpdatedHooks(updatedQueue)
 
   // devtool hook
@@ -132,6 +137,7 @@ function callUpdatedHooks (queue) {
   while (i--) {
     const watcher = queue[i]
     const vm = watcher.vm
+    // vm._watcher保存着渲染函数watcher
     if (vm._watcher === watcher && vm._isMounted && !vm._isDestroyed) {
       callHook(vm, 'updated')
     }
@@ -168,6 +174,7 @@ export function queueWatcher (watcher: Watcher) {
     if (!flushing) {
       queue.push(watcher)
     } else {
+      // 正在刷新队列
       // if already flushing, splice the watcher based on its id
       // if already past its id, it will be run next immediately.
       let i = queue.length - 1

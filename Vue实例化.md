@@ -29,8 +29,8 @@
 
 	11.初始化计算属性：
 		1.为计算属性创建一个watcher观察者,并在vm上定义_computedWatchers属性来存储所有的计算属性的观察者。
-		2.在vm上定义与计算属性同名的属性，并且该属性设置了getter。
-		3.该getter内部会调用计算属性watcher进行惰性求值和收集依赖，并返回计算属性的值。
+		2.在vm上定义与计算属性同名的属性，并且该属性设置了computedGetter。
+		3.该computedGetter内部会调用计算属性watcher进行惰性求值和收集依赖，并返回计算属性的值。
 
 		2.5版本的原理：
 		1.把依赖计算属性的依赖收集进对象的计算属性的观察者watcher.
@@ -40,6 +40,29 @@
 
 		本质上，计算属性是作为响应式属性和依赖计算属性的依赖的中间桥梁。只有计算属性真正发生变化时，才会通知
 		依赖计算属性的依赖，而不是响应式属性发生变化时，因为响应式属性发生变化时，计算属性不一定也会变化。
+
+		2.6版本的原理:
+			依赖的收集：
+			1.访问计算属性时(如渲染函数中访问，所以此时的Dep.target为renderWatcher,即targetStack的栈顶为
+				renderWatcher)，触发计算属性的gettercomputedGetter),在computedGetter中先判断watcher.dirty为true时，
+				会调用watcher.evaluate()进行求计算属性的求值。
+
+			2.调用watcher.evaluate()时，会先把Dep.target设置为计算属性的watcher，然后调用开发者定义的getter
+			进行求值，这样会发响应式属性的getter，从而把计算属性的watcher收集进响应式属性dep中，同时会把响应式的dep,收集到计算属性watcher的deps中。然后再把Dep.target设置成renderWatcher(targetStack的栈顶target),然后执行watcher.depend()，同时会把watcher.dirty设置为false。
+
+			3.执行watcher.depend()时，遍历计算属性的deps(响应式属性的dep)，调用响应式属性dep的depend方法，
+			把Dep.target(renderWatcher),添加到响应式属性的dep中，同时renderWatcher的deps也收集了响应式属性的dep.
+			
+			依赖的响应：
+			1.当响应式属性发生变化时，会通知它的依赖（计算属性的watcher，renderWatcher，计算属性的watcher都会先于
+			renderWatcher,即计算属性的依赖执行的），执行update方法。
+			2.计算属性的update方法只是把watcher.dirty设置为true。
+			3.renderWatcher会重新执行render，进行视图的更新，在这过程中，会在此访问到计算属性，此时计算属性的watcher.dirty已经为true，所以会进行重新求值。
+
+			所以对于2.6版本的计算属性来说，会把计算属性的watcher，和依赖该计算属性的watcher都会加入到依赖的响应式属性的dep中，当响应式属性发生变化时，都会通知watcher进行update，所以计算属性的watcher和依赖计算属性的
+			watcher都会得到通知。
+			对于使用watch来监听一个计算属性的watchWatcher来说，同样是会和计算属性watcher一起加入响应式属性的dep中的，响应式属性变化时，同时会得到通知，进行update,只不过watWatcher在update时，重新求计算属性的值，只有
+			在新旧值不等的时候才会执行开发者定义的watch回调。但是对于依赖计算属性的renderWatcher来说，在update时，都会执行render函数的(下阶段在深入渲染函数)。
 
 	12.初始化watch选项：为每一个watch属性创建一个watcher实例。
 

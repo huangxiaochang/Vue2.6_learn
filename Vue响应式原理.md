@@ -63,5 +63,20 @@
 
 # 观察者模式
 	上面所说的依赖即为一个观察者(Watcher实例对象)。
-	观察者watcher一般可分为：渲染函数观察者renderWatcher,计算属性观察者computedWatcher,watch观察者watchWatcher.
+	1.观察者watcher一般可分为：渲染函数观察者renderWatcher,计算属性观察者computedWatcher,watch观察者watchWatcher.
+
+	2.观察者的作用只要是在响应式属性中添加依赖，和响应式数据发生变化时，进行依赖的更新。即是一种view层和model层的中间桥梁。watcher的deps收集着依赖的响应式属性的dep,所以当watcher不再依赖该属性时，只需要从相应属性的
+	dep中移除自己即可达到以数据的脱离。
+
+	3.watcher的更新一般会放在一个watcher队列中，会在下一次的事件循环中进行更新操作（即执行watcher.run方法进行重新求值和执行相应的回调），并且在同一次事件循环中，同一个watcher只会加入队列一次。
+
+	4.避免重复添加watcher和响应式属性dep收集无效watcher的方法：
+		在watcher中维护两个属性deps和newDeps,deps收集的值前一次依赖的响应式dep，newDeps收集的是当前的响应式dep,
+		只需对比deps和newDeps即可找出watcher不再依赖的属性，然后移除即可。然后在收集watcher过程中，
+		只有newDeps中还没存在该watcher时，才加入newDeps中，这样便可避免了重复添加watcher。
+
+	5.计算属性进行懒求值的原理：
+		计算属性的watcher是通过dirty(初始值为true)标记来达到懒求值的，只有dirty的值为true的时候，访问计算属性时，才会调用
+		getter来进行重新求值，每次求完值后，会把dirty设置成false，所以下一次访问计算属性时，不会进行重新的求值，会直接返回上一次的值。只有当计算属性依赖的响应式属性发生变化时，会调用watcher的update方法，把dirty值
+		设置成true，这样就可以在下一次访问计算属性时，进行重新求值。
 	

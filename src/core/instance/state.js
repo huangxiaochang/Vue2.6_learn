@@ -268,15 +268,17 @@ function createComputedGetter (key) {
     // 计算属性观察者
     const watcher = this._computedWatchers && this._computedWatchers[key]
     if (watcher) {
+      // watcher.dirty首次为true或者每次响应式数据变化时也会设置成true
       if (watcher.dirty) {
-        // 计算属性求值
+        // 计算属性求值,只会在首次访问该计算属性或者响应式数据变化之后才会进行重新求值。
         watcher.evaluate()
       }
       if (Dep.target) {
-        // 收集计算属性的依赖
+        // 收集依赖计算属性的依赖，如renderWatcher。因为如果在渲染函数中访问计算属性时，
+        // 此时的Dep.target即为renderWatcher
         watcher.depend()
       }
-      // 返回计算属性的值
+      // 返回计算属性的值，watcher.dirty为false时，返回的是上一次计算的值
       return watcher.value
     }
   }
