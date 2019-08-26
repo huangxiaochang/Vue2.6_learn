@@ -87,7 +87,8 @@ function flushSchedulerQueue () {
   // as we run existing watchers
   for (index = 0; index < queue.length; index++) {
     watcher = queue[index]
-    // 执行watcher的before钩子
+    // 执行watcher的before钩子，渲染函数watcher存在before选项，会在before钩子中，当组件已经挂载过时，
+    // 调用beforeUpdate生命周期钩子函数。
     if (watcher.before) {
       watcher.before()
     }

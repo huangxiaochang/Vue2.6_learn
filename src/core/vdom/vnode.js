@@ -43,7 +43,7 @@ export default class VNode {
     this.data = data
     this.children = children
     this.text = text
-    this.elm = elm
+    this.elm = elm // vnode对应的真实dom节点
     this.ns = undefined
     this.context = context
     this.fnContext = undefined

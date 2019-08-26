@@ -29,9 +29,11 @@ export function initRender (vm: Component) {
   // so that we get proper render context inside it.
   // args order: tag, data, children, normalizationType, alwaysNormalize
   // internal version is used by render functions compiled from templates
+  // 经过模板编译的render函数时
   vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false)
   // normalization is always applied for the public version, used in
   // user-written render functions.
+  // 开发者自己定义的render函数时
   vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true)
 
   // $attrs & $listeners are exposed for easier HOC creation.
@@ -72,6 +74,7 @@ export function renderMixin (Vue: Class<Component>) {
     const { render, _parentVnode } = vm.$options
 
     if (_parentVnode) {
+      // 子组件的slot的vnode是在父组件中生成的
       vm.$scopedSlots = normalizeScopedSlots(
         _parentVnode.data.scopedSlots,
         vm.$slots,
@@ -81,6 +84,7 @@ export function renderMixin (Vue: Class<Component>) {
 
     // set parent vnode. this allows render functions to have access
     // to the data on the placeholder node.
+    // 设置组件的$vnode指向父级组件占位的vnode，这样子组件就可以拿到子组件占位node的data
     vm.$vnode = _parentVnode
     // render self
     let vnode
@@ -88,9 +92,13 @@ export function renderMixin (Vue: Class<Component>) {
       // There's no need to maintain a stack because all render fns are called
       // separately from one another. Nested component's render fns are called
       // when parent component is patched.
+      // 在这里不需要维护一个栈，因为所有的渲染函数调用时相互分离的。嵌套组件渲染函数会在
+      // 父组件patch过程中被调用。
       currentRenderingInstance = vm
+      // 调用render渲染函数返回vnode
       vnode = render.call(vm._renderProxy, vm.$createElement)
     } catch (e) {
+      // 处理执行渲染函数过程中的报错
       handleError(e, vm, `render`)
       // return error render result,
       // or previous vnode to prevent render error causing blank component
@@ -121,9 +129,11 @@ export function renderMixin (Vue: Class<Component>) {
           vm
         )
       }
+      // 空的vnode,即vnode的属性一般都是undefined，或者空数组，false等值。
       vnode = createEmptyVNode()
     }
     // set parent
+    // 在这里，vnode的parent，$vnode属性都指向了_parentVnode
     vnode.parent = _parentVnode
     return vnode
   }

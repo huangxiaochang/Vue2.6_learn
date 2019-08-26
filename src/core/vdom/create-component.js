@@ -33,7 +33,9 @@ import {
 } from 'weex/runtime/recycle-list/render-component-template'
 
 // inline hooks to be invoked on component VNodes during patch
+// 定义vnode的生命周期的钩子，这些钩子函数会在进行vnode的patch过程中被调用。
 const componentVNodeHooks = {
+  // 组件vnode的初始化
   init (vnode: VNodeWithData, hydrating: boolean): ?boolean {
     if (
       vnode.componentInstance &&
@@ -44,10 +46,12 @@ const componentVNodeHooks = {
       const mountedNode: any = vnode // work around flow
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
     } else {
+      // 创建子组件
       const child = vnode.componentInstance = createComponentInstanceForVnode(
         vnode,
         activeInstance
       )
+      // 进行子组件的挂载，即执行_render获取vnode,然后经过__patch__进行补丁成真实dom等.
       child.$mount(hydrating ? vnode.elm : undefined, hydrating)
     }
   },
@@ -68,6 +72,7 @@ const componentVNodeHooks = {
     const { context, componentInstance } = vnode
     if (!componentInstance._isMounted) {
       componentInstance._isMounted = true
+      // 在子组件vnode的insert钩子中，调用子组件的mounted生命周期钩子
       callHook(componentInstance, 'mounted')
     }
     if (vnode.data.keepAlive) {
@@ -98,6 +103,7 @@ const componentVNodeHooks = {
 
 const hooksToMerge = Object.keys(componentVNodeHooks)
 
+// 创建组件的vnode并返回
 export function createComponent (
   Ctor: Class<Component> | Function | Object | void,
   data: ?VNodeData,
@@ -151,25 +157,32 @@ export function createComponent (
   resolveConstructorOptions(Ctor)
 
   // transform component v-model data into props & events
+  // 把组件的v-mode 数据转换成props和events的格式
   if (isDef(data.model)) {
     transformModel(Ctor.options, data)
   }
 
   // extract props
+  // 提取组件标签上的bind数据
   const propsData = extractPropsFromVNodeData(data, Ctor, tag)
 
   // functional component
+  // 函数式组件
   if (isTrue(Ctor.options.functional)) {
     return createFunctionalComponent(Ctor, propsData, data, context, children)
   }
 
   // extract listeners, since these needs to be treated as
   // child component listeners instead of DOM listeners
+  // 提取在组件上绑定的事件监听器，会作为子组件的监听器，而不是dom节点上的监听器。
+  // 即使用绑定事件的方法是组件的自定义事件的形式。
   const listeners = data.on
   // replace with listeners with .native modifier
   // so it gets processed during parent component patch.
+  // 原生事件的绑定形式，使用dom的addEventListener形式
   data.on = data.nativeOn
 
+  // 抽象组件
   if (isTrue(Ctor.options.abstract)) {
     // abstract components do not keep anything
     // other than props & listeners & slot
@@ -183,6 +196,7 @@ export function createComponent (
   }
 
   // install component management hooks onto the placeholder node
+  // 在组件占位vnode中安装组件管理钩子。
   installComponentHooks(data)
 
   // return a placeholder vnode
@@ -210,8 +224,8 @@ export function createComponentInstanceForVnode (
   parent: any, // activeInstance in lifecycle state
 ): Component {
   const options: InternalComponentOptions = {
-    _isComponent: true,
-    _parentVnode: vnode,
+    _isComponent: true, // 代表是Vue的组件
+    _parentVnode: vnode, // 子组件的占位vnode
     parent
   }
   // check inline-template render functions
@@ -220,9 +234,12 @@ export function createComponentInstanceForVnode (
     options.render = inlineTemplate.render
     options.staticRenderFns = inlineTemplate.staticRenderFns
   }
+  // 创建一个组件并返回：即会调用_init方法机型子组件的初始化等
+  // vnode.componentOptions.Ctor为子组件构造函数
   return new vnode.componentOptions.Ctor(options)
 }
 
+// 安装组件的钩子，即把vnode的生命周期钩子合并
 function installComponentHooks (data: VNodeData) {
   const hooks = data.hook || (data.hook = {})
   for (let i = 0; i < hooksToMerge.length; i++) {

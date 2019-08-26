@@ -44,7 +44,9 @@ export default class Watcher {
 
   constructor (
     vm: Component,
-    expOrFn: string | Function, // 计算属性该值即为计算属性的getter
+    // 计算属性watcher，该值即为计算属性的getter。
+    // renderWatcher时，为updateComponent函数
+    expOrFn: string | Function, 
     cb: Function, // 计算属性该cb值为空
     options?: ?Object,
     isRenderWatcher?: boolean
@@ -63,7 +65,8 @@ export default class Watcher {
       this.user = !!options.user // 是否是用户定义的依赖，一般开发者watch选项时，都为t该属性rue
       this.lazy = !!options.lazy // 计算属性观察者时，该值为true
       this.sync = !!options.sync // 是否同步求值
-      this.before = options.before // 可以理解为Watcher实例的钩子，当数据变化之后触发更新之前调用
+      // 可以理解为Watcher实例的钩子，当数据变化之后触发更新之前调用，对于渲染函数watcher有用
+      this.before = options.before 
     } else {
       this.deep = this.user = this.lazy = this.sync = false
     }

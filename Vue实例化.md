@@ -64,7 +64,8 @@
 			对于使用watch来监听一个计算属性的watchWatcher来说，同样是会和计算属性watcher一起加入响应式属性的dep中的，响应式属性变化时，同时会得到通知，进行update,只不过watWatcher在update时，重新求计算属性的值，只有
 			在新旧值不等的时候才会执行开发者定义的watch回调。但是对于依赖计算属性的renderWatcher来说，在update时，都会执行render函数的(下阶段在深入渲染函数)。
 
-	12.初始化watch选项：为每一个watch属性创建一个watcher实例。
+	12.初始化watch选项：为每一个watch属性创建一个watcher实例(创建watcher实例时，会进行初始的求值，这样
+		即可触发依赖的响应式属性，然后添加该watchWatcher到响应式属性的dep中)。
 
 	13.初始化provide选项：在vm实例上定义一个_provided属性引用provide。
 
@@ -76,3 +77,27 @@
 
 
 # vm的$mount挂载：
+	vm的$mount挂载是和平台，运行版本相关的(运行时版本或者完整版)，在这里只分析web平台的$mount:
+	运行时版本的$mount，是直接调用mountComponent方法去挂载组件的，完整版$mount会先把模板编译处理成render函数（模板编译成渲染函数render详情见Vue模板编译.md），然后再调用运行时版本的$mount去进行挂载操作。
+
+	1.执行beforeMount生命周期钩子函数。（完整版在这之前，会先把模板编译成render函数）
+
+	2.先定义updateComponent方法，然后把该方法作为watcher的表达式参数去创建一个renderWatcher。
+		真正的挂载操作会在创建renderWatcher的过程中进行。
+
+	3.调用mounted生命周期钩子函数。
+
+	渲染函数renderWatcher的创建：
+	1.调用pushTarget，把renderWatcher加到targetstack栈顶，即Dep.target为renderWatcher.
+	2.调用this.getter(即updateComponent)参数和执行上下文都为当前vm实例对象。
+	3.所以挂载的具体实现是updateComponent方法中实现。在执行updateComponent时，会访问依赖的响应式属性，
+	所以会把renderWatcher添加到响应式属性的dep中。
+	
+	updateComponent的实现：
+	updateComponent = () => {vm._update(vm._rebder(), hydrating)}
+	详情见组件挂载.md
+
+
+
+
+

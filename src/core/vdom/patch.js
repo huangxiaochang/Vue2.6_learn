@@ -30,8 +30,13 @@ import {
 
 export const emptyNode = new VNode('', {}, [])
 
+// 元素创建，插入，更新，移除等生命周期钩子
 const hooks = ['create', 'activate', 'update', 'remove', 'destroy']
 
+// 是否是相同的vnode：
+// 1.key相等。并且。
+// 2.或者tag相等，都是注释节点，input标签时，type属性也要相等。
+// 3.或者是异步组件占位符。
 function sameVnode (a, b) {
   return (
     a.key === b.key && (
@@ -67,6 +72,7 @@ function createKeyToOldIdx (children, beginIdx, endIdx) {
   return map
 }
 
+// __patch__方法的创建
 export function createPatchFunction (backend) {
   let i, j
   const cbs = {}
@@ -122,6 +128,8 @@ export function createPatchFunction (backend) {
 
   let creatingElmInVPre = 0
 
+  // createElm 的作用是通过虚拟节点创建真实的 DOM 并插入到它的父节点中。
+  // 处理的顺序是先子后父
   function createElm (
     vnode,
     insertedVnodeQueue,
@@ -141,14 +149,16 @@ export function createPatchFunction (backend) {
     }
 
     vnode.isRootInsert = !nested // for transition enter check
+    // 如果是组件占位vnode，则创建一个组件
     if (createComponent(vnode, insertedVnodeQueue, parentElm, refElm)) {
       return
     }
-
+    // 普通节点的vnode的处理
     const data = vnode.data
     const children = vnode.children
     const tag = vnode.tag
     if (isDef(tag)) {
+      // 判断该标签是否有效
       if (process.env.NODE_ENV !== 'production') {
         if (data && data.pre) {
           creatingElmInVPre++
@@ -163,9 +173,11 @@ export function createPatchFunction (backend) {
         }
       }
 
+      // 创建该vnode对应的dom节点标签
       vnode.elm = vnode.ns
         ? nodeOps.createElementNS(vnode.ns, tag)
         : nodeOps.createElement(tag, vnode)
+      // 为作用域css设置作用域id
       setScope(vnode)
 
       /* istanbul ignore if */
@@ -188,10 +200,13 @@ export function createPatchFunction (backend) {
           insert(parentElm, vnode.elm, refElm)
         }
       } else {
+        // 创建孩子节点并插入父节点中，所以dom节点的创建和插入是从父到子的。
         createChildren(vnode, children, insertedVnodeQueue)
         if (isDef(data)) {
+          // 调用节点create的钩子函数
           invokeCreateHooks(vnode, insertedVnodeQueue)
         }
+        // 把dom节点插入到相应的位置
         insert(parentElm, vnode.elm, refElm)
       }
 
@@ -199,29 +214,41 @@ export function createPatchFunction (backend) {
         creatingElmInVPre--
       }
     } else if (isTrue(vnode.isComment)) {
+      // 注释节点
       vnode.elm = nodeOps.createComment(vnode.text)
       insert(parentElm, vnode.elm, refElm)
     } else {
+      // 文本节点
       vnode.elm = nodeOps.createTextNode(vnode.text)
       insert(parentElm, vnode.elm, refElm)
     }
   }
 
+  // 创建子组件并插入到父节点的相应的位置
   function createComponent (vnode, insertedVnodeQueue, parentElm, refElm) {
     let i = vnode.data
+    // 只有组件占位符vnode和根实例的vnode才定义了data属性
     if (isDef(i)) {
+      // 只有子组件的占位vnode才定义了componentInstance属性
       const isReactivated = isDef(vnode.componentInstance) && i.keepAlive
       if (isDef(i = i.hook) && isDef(i = i.init)) {
+        // 执行init钩子，进行子组件的创建和挂载。init钩子是在创建组件的vnode的时候定义的。
+        // src/core/vdom/create-component.js
         i(vnode, false /* hydrating */)
       }
       // after calling the init hook, if the vnode is a child component
       // it should've created a child instance and mounted it. the child
       // component also has set the placeholder vnode's elm.
       // in that case we can just return the element and be done.
+      // 如果vnode是一个子组件占位符的vnode，那么上上面调用init钩子之后，它已经完成了子组件的创建，
+      // 和挂载，同时子组件也已经设置了子组件占位vnode的elm属性（子组件根dom节点），在这种情境下，
+      // 我们只需要访问该元素即可。
       if (isDef(vnode.componentInstance)) {
         initComponent(vnode, insertedVnodeQueue)
+        // 把组件的dom插入到父节点中
         insert(parentElm, vnode.elm, refElm)
         if (isTrue(isReactivated)) {
+          // 如果是keep-alive组件
           reactivateComponent(vnode, insertedVnodeQueue, parentElm, refElm)
         }
         return true
@@ -269,6 +296,7 @@ export function createPatchFunction (backend) {
     insert(parentElm, vnode.elm, refElm)
   }
 
+  // 把dom插入到父节点中的相应位置
   function insert (parent, elm, ref) {
     if (isDef(parent)) {
       if (isDef(ref)) {
@@ -281,6 +309,7 @@ export function createPatchFunction (backend) {
     }
   }
 
+  // 创建孩子节点并插入父节点中
   function createChildren (vnode, children, insertedVnodeQueue) {
     if (Array.isArray(children)) {
       if (process.env.NODE_ENV !== 'production') {
@@ -290,6 +319,7 @@ export function createPatchFunction (backend) {
         createElm(children[i], insertedVnodeQueue, vnode.elm, null, true, children, i)
       }
     } else if (isPrimitive(vnode.text)) {
+      // 纯文本，则作为元素的文本节点
       nodeOps.appendChild(vnode.elm, nodeOps.createTextNode(String(vnode.text)))
     }
   }
@@ -301,6 +331,8 @@ export function createPatchFunction (backend) {
     return isDef(vnode.tag)
   }
 
+  // 调用vnode的create钩子函数，并且如果也定义了insert钩子，则把该vnode收集到insertedVnodeQueue
+  // 队列中
   function invokeCreateHooks (vnode, insertedVnodeQueue) {
     for (let i = 0; i < cbs.create.length; ++i) {
       cbs.create[i](emptyNode, vnode)
@@ -315,6 +347,7 @@ export function createPatchFunction (backend) {
   // set scope id attribute for scoped CSS.
   // this is implemented as a special case to avoid the overhead
   // of going through the normal attribute patching process.
+  // 为作用域css设置作用域id
   function setScope (vnode) {
     let i
     if (isDef(i = vnode.fnScopeId)) {
@@ -344,6 +377,10 @@ export function createPatchFunction (backend) {
     }
   }
 
+  // 销毁组件vnode: 
+  // 1.调用组件destroy生命周期钩子函数
+  // 2.调用元素的destory钩子函数，
+  // 3.递归销毁子vnode.
   function invokeDestroyHook (vnode) {
     let i, j
     const data = vnode.data
@@ -358,6 +395,7 @@ export function createPatchFunction (backend) {
     }
   }
 
+  // 移除旧的vnode
   function removeVnodes (vnodes, startIdx, endIdx) {
     for (; startIdx <= endIdx; ++startIdx) {
       const ch = vnodes[startIdx]
@@ -400,7 +438,7 @@ export function createPatchFunction (backend) {
       removeNode(vnode.elm)
     }
   }
-
+  // 对比新旧孩子vnode的diff算法：
   function updateChildren (parentElm, oldCh, newCh, insertedVnodeQueue, removeOnly) {
     let oldStartIdx = 0
     let newStartIdx = 0
@@ -697,7 +735,10 @@ export function createPatchFunction (backend) {
     }
   }
 
+  // 真正的__patch__方法：
+  // 初次渲染时，oldVnode为vm.$el,removeOnly=false
   return function patch (oldVnode, vnode, hydrating, removeOnly) {
+    // 组件的销毁
     if (isUndef(vnode)) {
       if (isDef(oldVnode)) invokeDestroyHook(oldVnode)
       return
@@ -708,14 +749,17 @@ export function createPatchFunction (backend) {
 
     if (isUndef(oldVnode)) {
       // empty mount (likely as component), create new root element
+      // 子组件是自己接管挂载的，所以创建一个新的更深，然后会插入到相应的父节点中
       isInitialPatch = true
       createElm(vnode, insertedVnodeQueue)
     } else {
+      // 如果oldVnode是一个真实的dom节点，根组件实例化时，传进$el:'#app',所以isRealElement=true
       const isRealElement = isDef(oldVnode.nodeType)
       if (!isRealElement && sameVnode(oldVnode, vnode)) {
         // patch existing root node
         patchVnode(oldVnode, vnode, insertedVnodeQueue, null, null, removeOnly)
       } else {
+        // 如果一个真实的dom节点，并且不是服务器端渲染，则把该节点转成一个vnode。
         if (isRealElement) {
           // mounting to a real element
           // check if this is server-rendered content and if we can perform
@@ -724,6 +768,7 @@ export function createPatchFunction (backend) {
             oldVnode.removeAttribute(SSR_ATTR)
             hydrating = true
           }
+          // 服务器端渲染
           if (isTrue(hydrating)) {
             if (hydrate(oldVnode, vnode, insertedVnodeQueue)) {
               invokeInsertHook(vnode, insertedVnodeQueue, true)
@@ -740,6 +785,7 @@ export function createPatchFunction (backend) {
           }
           // either not server-rendered, or hydration failed.
           // create an empty node and replace it
+          // 如果不是服务器端渲染，则把真实的dom节点转成一个vnode
           oldVnode = emptyNodeAt(oldVnode)
         }
 
@@ -748,6 +794,7 @@ export function createPatchFunction (backend) {
         const parentElm = nodeOps.parentNode(oldElm)
 
         // create new node
+        // 创建元素并插入父节点中
         createElm(
           vnode,
           insertedVnodeQueue,
@@ -755,10 +802,11 @@ export function createPatchFunction (backend) {
           // leaving transition. Only happens when combining transition +
           // keep-alive + HOCs. (#4590)
           oldElm._leaveCb ? null : parentElm,
-          nodeOps.nextSibling(oldElm)
+          nodeOps.nextSibling(oldElm) // 下一个兄弟节点
         )
 
         // update parent placeholder node element, recursively
+        // 如果是组件占位vnode，则更新该占位dom元素
         if (isDef(vnode.parent)) {
           let ancestor = vnode.parent
           const patchable = isPatchable(vnode)

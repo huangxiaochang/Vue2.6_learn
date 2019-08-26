@@ -31,10 +31,12 @@ export function initMixin (Vue: Class<Component>) {
     // merge options
     // 合并options选项：内部组件的合并和动态options的合并做不同的逻辑，
     // 因为动态的options合并很慢并且内置组件的合并，需要一些特殊的处理。
+    // options._isComponent标志会在创建子组件的vnode时添加，标记为这是Vue的组件(vdom/create-component)
     if (options && options._isComponent) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
       // internal component options needs special treatment.
+      // 内部组件的合并策略
       initInternalComponent(vm, options)
     } else {
       vm.$options = mergeOptions(
@@ -67,23 +69,27 @@ export function initMixin (Vue: Class<Component>) {
       mark(endTag)
       measure(`vue ${vm._name} init`, startTag, endTag)
     }
-
+    // 创建子组件时，不传进el选项，所以子组件的挂载是自己接管的。会在组件vnode的init钩子中进行挂载。
+    // (vdom/create-component.js)
     if (vm.$options.el) {
       vm.$mount(vm.$options.el)
     }
   }
 }
 
+// 子组件合并策略: 即把在子组件占位vnode上定义的propsData，listeners，children，tag等合并
+// 到子组件的$options选项中
 export function initInternalComponent (vm: Component, options: InternalComponentOptions) {
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
   const parentVnode = options._parentVnode
-  opts.parent = options.parent
-  opts._parentVnode = parentVnode
+  opts.parent = options.parent // 子组件的父组件vm
+  opts._parentVnode = parentVnode // 子组件的占位vnode
 
+  // componentOptions：子组件的一些选项，在创建子组件vnode时定义(vdom/create-component)。
   const vnodeComponentOptions = parentVnode.componentOptions
-  opts.propsData = vnodeComponentOptions.propsData
-  opts._parentListeners = vnodeComponentOptions.listeners
+  opts.propsData = vnodeComponentOptions.propsData // 在子组件标签中v-bind的数据
+  opts._parentListeners = vnodeComponentOptions.listeners // 在子组件标签中绑定的事件监听器
   opts._renderChildren = vnodeComponentOptions.children
   opts._componentTag = vnodeComponentOptions.tag
 

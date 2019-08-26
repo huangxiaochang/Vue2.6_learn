@@ -21,6 +21,8 @@ import {
 export let activeInstance: any = null
 export let isUpdatingChildComponent: boolean = false
 
+// setActiveInstance：把当前的activeInstance设置成当前的组件vm，并且返回一个函数，
+// 调用该函数时，又把activeInstance设置会之前的组件vm
 export function setActiveInstance(vm: Component) {
   const prevActiveInstance = activeInstance
   activeInstance = vm
@@ -64,10 +66,14 @@ export function lifecycleMixin (Vue: Class<Component>) {
     const vm: Component = this
     const prevEl = vm.$el
     const prevVnode = vm._vnode
+    // setActiveInstance：把当前的activeInstance设置成当前的组件vm，并且返回一个函数，
+    // 调用该函数时，又把activeInstance设置会之前的组件vm。这样保证了父子组件进行__patch__,
+    // 能够正确获取到当前的vm。
     const restoreActiveInstance = setActiveInstance(vm)
     vm._vnode = vnode
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
+    // Vue.prototype.__patch__的定义入口是在平台相关目录下，如web/runtime/index
     if (!prevVnode) {
       // initial render
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
@@ -75,6 +81,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
       // updates
       vm.$el = vm.__patch__(prevVnode, vnode)
     }
+    // __patch__完一个组件之后，又设置会原来的vm,这样保证了activeInstance一直保持是当前的vm
     restoreActiveInstance()
     // update __vue__ reference
     if (prevEl) {
@@ -142,6 +149,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
   }
 }
 
+// 进行组件的挂载
 export function mountComponent (
   vm: Component,
   el: ?Element,
@@ -191,6 +199,8 @@ export function mountComponent (
     }
   } else {
     updateComponent = () => {
+      // 调用vm._render()返回vnode,
+      // 调用vm._update进行挂载成真实的dom
       vm._update(vm._render(), hydrating)
     }
   }
@@ -199,6 +209,7 @@ export function mountComponent (
   // since the watcher's initial patch may call $forceUpdate (e.g. inside child
   // component's mounted hook), which relies on vm._watcher being already defined
   new Watcher(vm, updateComponent, noop, {
+    // 会在刷新watcher队列的时候，执行该钩子 
     before () {
       if (vm._isMounted && !vm._isDestroyed) {
         callHook(vm, 'beforeUpdate')
@@ -209,7 +220,9 @@ export function mountComponent (
 
   // manually mounted instance, call mounted on self
   // mounted is called for render-created child components in its inserted hook
+  // 根组件时，调用mounted生命周期钩子，子组件的mounted钩子会在插入的钩子中调用。
   if (vm.$vnode == null) {
+    // vm.$vnode保存的是父组件的vnode，所以只有根组件$vnode为nulll
     vm._isMounted = true
     callHook(vm, 'mounted')
   }
