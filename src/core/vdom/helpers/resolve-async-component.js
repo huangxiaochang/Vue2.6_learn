@@ -40,14 +40,19 @@ export function createAsyncPlaceholder (
   return node
 }
 
+// 解析异步组件，异步组件的形式可以使用异步工厂函数的方式来定义。
+// 对于异步组件来说，该方法会被调用两次，第一次会生成一个加载或者注释的节点，
+// 等到异步解析组件成功或者失败以后，会调用$forceUpdate方法进行强制视图的重新渲染。
 export function resolveAsyncComponent (
   factory: Function,
   baseCtor: Class<Component>
 ): Class<Component> | void {
+  // 解析异步组件失败，如果定义了解析失败组件，则返回解析失败的组件
   if (isTrue(factory.error) && isDef(factory.errorComp)) {
     return factory.errorComp
   }
 
+  // 如果异步组件已经解析成功，则返回解析的异步组件
   if (isDef(factory.resolved)) {
     return factory.resolved
   }
@@ -58,6 +63,7 @@ export function resolveAsyncComponent (
     factory.owners.push(owner)
   }
 
+  // 返回解析的加载时组件
   if (isTrue(factory.loading) && isDef(factory.loadingComp)) {
     return factory.loadingComp
   }
@@ -111,6 +117,7 @@ export function resolveAsyncComponent (
       }
     })
 
+    // 执行异步加载的方法
     const res = factory(resolve, reject)
 
     if (isObject(res)) {

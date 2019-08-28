@@ -61,13 +61,13 @@ Vue.prototype.$mount = function (
       if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
         mark('compile')
       }
-
+      // 把模板编译成渲染函数
       const { render, staticRenderFns } = compileToFunctions(template, {
         outputSourceRange: process.env.NODE_ENV !== 'production',
-        shouldDecodeNewlines,
-        shouldDecodeNewlinesForHref,
-        delimiters: options.delimiters,
-        comments: options.comments
+        shouldDecodeNewlines, // 是否应该解码标签属性值内的换行码，因为ie会编码该值的换行
+        shouldDecodeNewlinesForHref, // 是否应该解码标签href属性值内的换行码，因为谷歌会编码该值的换行
+        delimiters: options.delimiters, // 纯文本插入分割符
+        comments: options.comments // 是否保留模板中的注释
       }, this)
       options.render = render
       options.staticRenderFns = staticRenderFns

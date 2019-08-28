@@ -7,6 +7,7 @@ let div
 function getShouldDecode (href: boolean): boolean {
   div = div || document.createElement('div')
   div.innerHTML = href ? `<a href="\n"/>` : `<div a="\n"/>`
+  // &#10; -> 换行符
   return div.innerHTML.indexOf('&#10;') > 0
 }
 

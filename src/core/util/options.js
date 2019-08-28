@@ -202,7 +202,7 @@ LIFECYCLE_HOOKS.forEach(hook => {
  * a three-way merge between constructor options, instance
  * options and parent options.
  * 组件，指令，过滤器的合并：
- * 把父子选项合并到一个对象返回，存在同名键时，子选项属性会覆盖父选项属性
+ * 将父选项作为子选项的原型对象
  */
 function mergeAssets (
   parentVal: ?Object,

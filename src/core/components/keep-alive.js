@@ -66,6 +66,7 @@ export default {
   },
 
   destroyed () {
+    // 销毁时，取消kepp-alive包裹的组件的缓存
     for (const key in this.cache) {
       pruneCacheEntry(this.cache, key, this.keys)
     }

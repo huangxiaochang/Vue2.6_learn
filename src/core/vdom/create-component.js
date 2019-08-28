@@ -135,11 +135,15 @@ export function createComponent (
   let asyncFactory
   if (isUndef(Ctor.cid)) {
     asyncFactory = Ctor
+    // 对于异步组件来说，resolveAsyncComponent会被调用两次，首次时，会创建一个解释节点或者加载中的组件，
+    // 然后等到异步组件加载成功或者失败之后，会调用$forceUpdate方法进行强制的视图更新，然后渲染加载成功的
+    // 组件
     Ctor = resolveAsyncComponent(asyncFactory, baseCtor)
     if (Ctor === undefined) {
       // return a placeholder node for async component, which is rendered
       // as a comment node but preserves all the raw information for the node.
       // the information will be used for async server-rendering and hydration.
+      // 第一个渲染异步组件时，会渲染成一个解释的节点占位
       return createAsyncPlaceholder(
         asyncFactory,
         data,
@@ -182,11 +186,11 @@ export function createComponent (
   // 原生事件的绑定形式，使用dom的addEventListener形式
   data.on = data.nativeOn
 
-  // 抽象组件
+  // 抽象组件，如keep-alive组件
   if (isTrue(Ctor.options.abstract)) {
     // abstract components do not keep anything
     // other than props & listeners & slot
-
+    // 函数式组件只保留props，listeners和slot，其他的都不保存，即在抽象的组件中，只能使用这三个选项
     // work around flow
     const slot = data.slot
     data = {}

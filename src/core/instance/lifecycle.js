@@ -76,6 +76,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
     // Vue.prototype.__patch__的定义入口是在平台相关目录下，如web/runtime/index
     if (!prevVnode) {
       // initial render
+      // 子组件的$el选项为undefined
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
     } else {
       // updates

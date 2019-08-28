@@ -133,7 +133,7 @@ export function createPatchFunction (backend) {
   function createElm (
     vnode,
     insertedVnodeQueue,
-    parentElm,
+    parentElm, // 子组件的首次渲染时，为undefined
     refElm,
     nested,
     ownerArray,
@@ -206,7 +206,8 @@ export function createPatchFunction (backend) {
           // 调用节点create的钩子函数
           invokeCreateHooks(vnode, insertedVnodeQueue)
         }
-        // 把dom节点插入到相应的位置
+        // 把dom节点插入到相应的位置，子组件首次渲染parentElm=undefined，所以并没插入，
+        // 但是会在createComponent的时候，插入到父节点中
         insert(parentElm, vnode.elm, refElm)
       }
 
@@ -241,8 +242,8 @@ export function createPatchFunction (backend) {
       // component also has set the placeholder vnode's elm.
       // in that case we can just return the element and be done.
       // 如果vnode是一个子组件占位符的vnode，那么上上面调用init钩子之后，它已经完成了子组件的创建，
-      // 和挂载，同时子组件也已经设置了子组件占位vnode的elm属性（子组件根dom节点），在这种情境下，
-      // 我们只需要访问该元素即可。
+      // 和挂载(还没有插入父节点，但是已经创建了子组件的dom树，并把根元素设置到了组件占位vnode的elm属性)，
+      // 同时子组件也已经设置了子组件占位vnode的elm属性（子组件根dom节点），在这种情境下，我们只需要返回该元素即可。
       if (isDef(vnode.componentInstance)) {
         initComponent(vnode, insertedVnodeQueue)
         // 把组件的dom插入到父节点中
@@ -749,7 +750,8 @@ export function createPatchFunction (backend) {
 
     if (isUndef(oldVnode)) {
       // empty mount (likely as component), create new root element
-      // 子组件是自己接管挂载的，所以创建一个新的更深，然后会插入到相应的父节点中
+      // 子组件的首次渲染，oldVnode为undefined，子组件是自己接管挂载的，所以创建一个新的根元素，
+      // 然后会插入到相应的父节点中。
       isInitialPatch = true
       createElm(vnode, insertedVnodeQueue)
     } else {

@@ -16,11 +16,11 @@ export const baseOptions: CompilerOptions = {
   expectHTML: true,
   modules,
   directives,
-  isPreTag,
-  isUnaryTag,
-  mustUseProp,
-  canBeLeftOpenTag,
-  isReservedTag,
-  getTagNamespace,
-  staticKeys: genStaticKeys(modules)
+  isPreTag, // 是否是pre标签
+  isUnaryTag, // 是否是一元标签
+  mustUseProp, // 必须使用prop绑定的属性，如input的value，checked属性,video的muted属性等等。
+  canBeLeftOpenTag, // 是否是不用闭合的标签，如p,li,td,tr等等标签
+  isReservedTag, // 是否是保留的标签。即所有的html。svg标签。
+  getTagNamespace, // 标签的命名空间，svg,math
+  staticKeys: genStaticKeys(modules) // staticStyle, staticClass
 }

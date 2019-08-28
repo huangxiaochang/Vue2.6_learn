@@ -15,7 +15,8 @@ export function initExtend (Vue: GlobalAPI) {
 
   /**
    * Class inheritance
-   * 用于创建一个Vue的子类。即子组件
+   * 用于创建一个Vue的子类。即子组件。
+   * 创建子组件的方式见：vdom/create-component.js
    */
   Vue.extend = function (extendOptions: Object): Function {
     extendOptions = extendOptions || {}
