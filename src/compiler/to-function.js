@@ -18,18 +18,21 @@ function createFunction (code, errors) {
   }
 }
 
+// 该函数的作用是，创建一个把模板变成成渲染函数的函数。编译模板的函数作为参数传进，这样
+// 便可根据不同的平台，传进不同的编译函数
 export function createCompileToFunctionFn (compile: Function): Function {
   const cache = Object.create(null)
-
+  // 该函数用于返回render，staticRenderFns
   return function compileToFunctions (
-    template: string,
-    options?: CompilerOptions,
+    template: string, // 模板
+    options?: CompilerOptions, // 一些编译的选项
     vm?: Component
   ): CompiledFunctionResult {
     options = extend({}, options)
     const warn = options.warn || baseWarn
     delete options.warn
 
+    // 判断是否使用了严格模式，因为严格模式下，new Function无效
     /* istanbul ignore if */
     if (process.env.NODE_ENV !== 'production') {
       // detect possible CSP restriction
@@ -49,6 +52,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     }
 
     // check cache
+    // 尝试从缓存中获取
     const key = options.delimiters
       ? String(options.delimiters) + template
       : template
@@ -56,10 +60,12 @@ export function createCompileToFunctionFn (compile: Function): Function {
       return cache[key]
     }
 
-    // compile
+    // compile，
+    // 对模板进行编译，返回rebder，staticRenderFns，ast,errors等编译相关信息
     const compiled = compile(template, options)
 
     // check compilation errors/tips
+    // 进行一些编译错误和提示的显示
     if (process.env.NODE_ENV !== 'production') {
       if (compiled.errors && compiled.errors.length) {
         if (options.outputSourceRange) {
@@ -88,6 +94,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     }
 
     // turn code into functions
+    // 把函数体使用new Function创建成函数
     const res = {}
     const fnGenErrors = []
     res.render = createFunction(compiled.render, fnGenErrors)
@@ -109,6 +116,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
       }
     }
 
+    // 缓存并返回结果
     return (cache[key] = res)
   }
 }

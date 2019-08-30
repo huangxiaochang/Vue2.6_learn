@@ -14,8 +14,8 @@ import { isUnaryTag, canBeLeftOpenTag } from './util'
 
 export const baseOptions: CompilerOptions = {
   expectHTML: true,
-  modules,
-  directives,
+  modules, // 定义处理v-model/class/style相关的处理
+  directives, // v-html/text/model指令
   isPreTag, // 是否是pre标签
   isUnaryTag, // 是否是一元标签
   mustUseProp, // 必须使用prop绑定的属性，如input的value，checked属性,video的muted属性等等。
