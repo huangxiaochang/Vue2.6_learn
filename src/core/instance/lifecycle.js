@@ -353,7 +353,11 @@ export function deactivateChildComponent (vm: Component, direct?: boolean) {
 
 export function callHook (vm: Component, hook: string) {
   // #7573 disable dep collection when invoking lifecycle hooks
-  pushTarget() // 生命周期钩子中使用 props 数据导致收集冗余的依赖
+  // 生命周期钩子中使用 props 数据导致收集冗余的依赖.
+  // 如果不先pushTarget()，那么在子组件创建过程中执行生命周期钩子函数时，如果有访问响应式属性，
+  // 因为此时Dep.target会为父级组件的render watcher,这样会把父级renderWatcher也收集到子组件的响应式
+  // 属性的dep,这样子组件响应式属性变化时，会导致父级组件重新执行render。
+  pushTarget() 
   const handlers = vm.$options[hook]
   const info = `${hook} hook`
   if (handlers) {

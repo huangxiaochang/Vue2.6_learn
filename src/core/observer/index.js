@@ -171,6 +171,8 @@ export function defineReactive (
   let childOb = !shallow && observe(val)
 
   // 把该对象的该属性设置成存取性属性，即设置getter/setter拦截。
+  // 如果key对应的值是一个数组，那么使用数组的方法时，也会触发getter.如：this.arr.push()
+  // 会触发arr属性的getter。
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
@@ -178,11 +180,13 @@ export function defineReactive (
       const value = getter ? getter.call(obj) : val
       if (Dep.target) {
         dep.depend()
+        // 如果该属性值是一个响应式数据（数组/对象），则把watcher添加到该属性值的__ob__.dep中，
+        // 这里也是为了使用$set/$del设置该属性值时，也能触发依赖
         if (childOb) {
-          // 把该属性的该依赖加入到子属性的依赖收集筐中，这样子属性发生变化时，该属性的依赖也会得到通知
+          // 把该属性的该依赖加入到属性值的依赖收集筐中(__ob__)，这样属性值发生变化时，该属性的依赖也会得到通知
           childOb.dep.depend()
           if (Array.isArray(value)) {
-            // 如果是数组的话，把数组依赖加进数组项的依赖框中，这样数组项变化时，数组的依赖
+            // 如果属性值是数组的话，把数组依赖加进数组项的依赖框中，这样数组项变化时，数组的依赖
             // 也会得到通知
             dependArray(value)
           }
