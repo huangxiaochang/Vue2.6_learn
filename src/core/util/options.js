@@ -30,11 +30,13 @@ const strats = config.optionMergeStrategies
 
 /**
  * Options with restrictions
- * el, propsData的合并策略：子选项存在，则使用子选项，否者使用父选项
+ * el, propsData的合并策略：子选项存在，则直接使用子选项，否者使用父选项
  */
 if (process.env.NODE_ENV !== 'production') {
   strats.el = strats.propsData = function (parent, child, vm, key) {
     // 只用于new创建的实例中，如非子组件。即子组件中一般不使用这两个选项
+    // 合并子类Sub的options时，没有传进第三个参数，即子类(子组件的options中，不能配置el,propsData这个
+    // 个选项)
     if (!vm) {
       warn(
         `option "${key}" can only be used during instance ` +
@@ -84,7 +86,9 @@ function mergeData (to: Object, from: ?Object): Object {
 
 /**
  * Data
- * data选项处理成一个函数返回
+ * data选项处理成一个函数返回，返回的这个函数会在初始化的时候才会被执行，即才会进行真正的合并，
+ * 不在合并就数据合并好，是因为inject,props的初始化是在data选项之前的，这样就可以保证我们可以使用
+ * props初始化data中的数据。
  */
 export function mergeDataOrFn (
   parentVal: any,
@@ -437,6 +441,7 @@ export function mergeOptions (
     checkComponents(child)
   }
 
+  // 子类Sub，则允许合并实例构造函数的选项
   if (typeof child === 'function') {
     child = child.options
   }

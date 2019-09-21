@@ -18,6 +18,6 @@ initMixin(Vue) // 在Vue原型上定义_init方法
 stateMixin(Vue) // 在Vue原型上定义$data,$props分别代理_data,_props,定义$set,$delete,$watch方法
 eventsMixin(Vue) // 原型上定义$on，$emit,$once,$off方法
 lifecycleMixin(Vue) // 原型上定义_update，$forceUpdate， $destroy
-renderMixin(Vue) // 原型上定义$nextTick，_render
+renderMixin(Vue) // 原型上定义$nextTick，_render, 在Vue.prototype安装一些渲染函数的中用到的帮助函数,如_c,_m等等
 
 export default Vue

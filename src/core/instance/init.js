@@ -39,6 +39,7 @@ export function initMixin (Vue: Class<Component>) {
       // 内部组件的合并策略
       initInternalComponent(vm, options)
     } else {
+      // 在下面的组件初始化中，会用到vm.$options属性
       vm.$options = mergeOptions(
         resolveConstructorOptions(vm.constructor), // 获取构造函数上的options选项
         options || {},
@@ -104,7 +105,9 @@ export function initInternalComponent (vm: Component, options: InternalComponent
 // 因为子类也实现了相关的注册方法，所以如果使用了子类的相关方法进行注册了混入，组件，指令，
 // 过滤器等，那么调用该子类去实例化时，这些注册的内容也会在options选项中进行合并。
 export function resolveConstructorOptions (Ctor: Class<Component>) {
+  // Vue或者子类Sub上的options静态属性，定义在global-api,即Vue内置的组件，指令，过滤器等选项
   let options = Ctor.options
+  // 只有是子类Sub时，才会执行if内代码
   if (Ctor.super) {
     // 递归获取父级构造函数的
     const superOptions = resolveConstructorOptions(Ctor.super)
