@@ -25,12 +25,17 @@ export function validateProp (
   vm?: Component
 ): any {
   const prop = propOptions[key]
+  // 外界是否传递了该prop，为true时，则外界没有传递
   const absent = !hasOwn(propsData, key)
   let value = propsData[key]
   // boolean casting
+  // getTypeIndex函数判断第二个参数中是否存在第一个参数指定的类型
   const booleanIndex = getTypeIndex(Boolean, prop.type)
+  // 对prop的类型为Boolearn进行特殊的处理
   if (booleanIndex > -1) {
+    // 如果该prop指定了Boolean类型
     if (absent && !hasOwn(prop, 'default')) {
+      // 如果外界没有传递并且没有默认值时，prop的值默认为false
       value = false
     } else if (value === '' || value === hyphenate(key)) {
       // only cast empty string / same name to boolean if
@@ -43,11 +48,13 @@ export function validateProp (
   }
   // check default value
   if (value === undefined) {
+    // 如果没有传递prop的值，则获取默认值作为该值
     value = getPropDefaultValue(vm, prop, key)
     // since the default value is a fresh copy,
     // make sure to observe it.
     const prevShouldObserve = shouldObserve
     toggleObserving(true)
+    // 把默认值定义成响应式数据
     observe(value)
     toggleObserving(prevShouldObserve)
   }
@@ -85,6 +92,9 @@ function getPropDefaultValue (vm: ?Component, prop: PropOptions, key: string): a
     vm.$options.propsData[key] === undefined &&
     vm._props[key] !== undefined
   ) {
+    // 如果1.当前组件处于更新状态且没有传递该prop，2.上一次更新或者创建，也没有传递，3.
+    // 上一次更新或者创建时，该prop拥有一个不为undefined的默认值
+    // 则返回之前prop的值作为本次prop的默认值，这样即可避免触发没有意义的响应
     return vm._props[key]
   }
   // call factory function for non-Function types

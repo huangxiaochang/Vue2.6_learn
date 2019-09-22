@@ -141,9 +141,11 @@ export default class Watcher {
    */
   addDep (dep: Dep) {
     const id = dep.id
+    // 避免一次求值收集重复依赖
     if (!this.newDepIds.has(id)) {
       this.newDepIds.add(id)
       this.newDeps.push(dep)
+      // 避免多次求值收集重复依赖
       if (!this.depIds.has(id)) {
         dep.addSub(this)
       }
@@ -244,7 +246,7 @@ export default class Watcher {
    */
   depend () {
     // 因为在访问计算属性时，首先会调用watcher.evaluate()，这样计算属性watcher会添加进响应式属性的
-    // dep中，同时也会在改计算属性watcher的dep属性中收集了响应式属性的dep。所以当调用watcher.depend()
+    // dep中，同时也会在该计算属性watcher的dep属性中收集了响应式属性的dep。所以当调用watcher.depend()
     // 时，this.deps中的dep即为计算属性依赖的响应式属性的dep.
     let i = this.deps.length
     while (i--) {

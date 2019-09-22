@@ -43,7 +43,7 @@ export class Observer {
     this.value = value
     this.dep = new Dep()
     this.vmCount = 0
-    // 使用Object.definProperty在value上定义__ob__为数据属性
+    // 使用Object.definProperty在value上定义__ob__为数据属性，同时设置为不可遍历
     def(value, '__ob__', this)
     if (Array.isArray(value)) {
       // 进行数组的响应式定义
@@ -114,6 +114,7 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * returns the new observer if successfully observed,
  * or the existing observer if the value already has one.
  * 该方法主要用于观测一个数据：即会为值创建一个observer实例（值的__ob__属性指向了observer实例）。
+ * 并且对属性设置getter/setter拦截。
  */
 export function observe (value: any, asRootData: ?boolean): Observer | void {
   if (!isObject(value) || value instanceof VNode) {
@@ -124,11 +125,11 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
     // 如果已经观测
     ob = value.__ob__
   } else if (
-    shouldObserve &&
-    !isServerRendering() &&
-    (Array.isArray(value) || isPlainObject(value)) &&
-    Object.isExtensible(value) &&
-    !value._isVue
+    shouldObserve && // 该值希望呗观测
+    !isServerRendering() && // 不是服务器端渲染
+    (Array.isArray(value) || isPlainObject(value)) && // 为数组或者纯对象
+    Object.isExtensible(value) && // 数据对象必须为可拓展, Object.preventExtensions/freeze/seal可设置成不可拓展
+    !value._isVue // 避免Vue实例对象被观测
   ) {
     // 否则如果希望数据被观测，是数组或者对象，并且是可拓展时，同时不是Vue实例时，则创建一个observer
     ob = new Observer(value)
@@ -163,11 +164,17 @@ export function defineReactive (
   // 保存属性本来的getter/setter
   const getter = property && property.get
   const setter = property && property.set
+  // 保证定义响应式数据时行为的一致性
+  // 1.如果数据对象的某个属性原本拥有自己的getter函数，那么这个属性不会被深度观测
+  // 2.当属性拥有setter时，要进行取值，进行深度观测
   if ((!getter || setter) && arguments.length === 2) {
     val = obj[key]
   }
 
-  // 需要深度观测时，先深度观测该属性的值。顺序为先子后父
+  // 需要深度观测时，先深度观测该属性的值。顺序为先子后父。
+  // 深度观测的条件：
+  //  1.shallow=false,即希望深度观测
+  //  2.val不为undefined，即要触发上面val = obj[key]取值操作
   let childOb = !shallow && observe(val)
 
   // 把该对象的该属性设置成存取性属性，即设置getter/setter拦截。
@@ -197,11 +204,13 @@ export function defineReactive (
     set: function reactiveSetter (newVal) {
       const value = getter ? getter.call(obj) : val
       /* eslint-disable no-self-compare */
+      // 只有值前后不相等时，才会触发通知依赖,(newVal !== newVal && value !== value)判断NaN
       if (newVal === value || (newVal !== newVal && value !== value)) {
         return
       }
       /* eslint-enable no-self-compare */
       if (process.env.NODE_ENV !== 'production' && customSetter) {
+        // 打印一些辅助信息，如不可set等
         customSetter()
       }
       // #7981: for accessor properties without setter
@@ -230,6 +239,7 @@ export function set (target: Array<any> | Object, key: any, val: any): any {
     warn(`Cannot set reactive property on undefined, null, or primitive value: ${(target: any)}`)
   }
   if (Array.isArray(target) && isValidArrayIndex(key)) {
+    // 设置数组的长度，因为当key的长度大于数组原本的长度时，splice会无效
     target.length = Math.max(target.length, key)
     target.splice(key, 1, val)
     return val
@@ -247,6 +257,7 @@ export function set (target: Array<any> | Object, key: any, val: any): any {
     return val
   }
   if (!ob) {
+    // 如果原本就是不响应的，则简单的赋值，然后返回，并没有触发通知依赖
     target[key] = val
     return val
   }

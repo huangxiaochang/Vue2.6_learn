@@ -42,6 +42,7 @@ if (process.env.NODE_ENV !== 'production') {
     const isBuiltInModifier = makeMap('stop,prevent,self,ctrl,shift,alt,meta,exact')
     config.keyCodes = new Proxy(config.keyCodes, {
       set (target, key, value) {
+        // 防止开发者定义自定义键位时，覆盖了内置的事件修饰符
         if (isBuiltInModifier(key)) {
           warn(`Avoid overwriting built-in modifier in config.keyCodes: .${key}`)
           return false
@@ -53,12 +54,13 @@ if (process.env.NODE_ENV !== 'production') {
     })
   }
 
-  // 代理in,hasProperty操作
+  // 代理in,hasProperty, with,Reflect.has()操作
   const hasHandler = {
     has (target, key) {
       const has = key in target
       const isAllowed = allowedGlobals(key) ||
         (typeof key === 'string' && key.charAt(0) === '_' && !(key in target.$data))
+      // 如果访问不存在vm上的属性，或者不是以_开头的内部属性，这进行错误提示
       if (!has && !isAllowed) {
         if (key in target.$data) warnReservedPrefix(target, key)
         else warnNonPresent(target, key)
@@ -84,9 +86,13 @@ if (process.env.NODE_ENV !== 'production') {
     if (hasProxy) {
       // determine which proxy handler to use
       const options = vm.$options
+      // _withStripped属性一般只有在测试代码中出现，所以这里一般使用hasHandler.
+      // 或者我们在自己手写render函数时，可以设置该属性为true，这样既可得到友好的错误提示
       const handlers = options.render && options.render._withStripped
         ? getHandler
         : hasHandler
+      // 因为一般情况下，渲染函数内部使用with语句指定了执行上下文为_renderProxy，所以使用has拦截，
+      // 因为has拦截可以拦截with语句
       vm._renderProxy = new Proxy(vm, handlers)
     } else {
       vm._renderProxy = vm

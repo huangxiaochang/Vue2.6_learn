@@ -21,6 +21,7 @@ export function initRender (vm: Component) {
   vm._vnode = null // the root of the child tree
   vm._staticTrees = null // v-once cached trees
   const options = vm.$options
+  // 添加$vnode，$slots，$scopedSlots属性到组件实例vm上
   const parentVnode = vm.$vnode = options._parentVnode // the placeholder node in parent tree
   const renderContext = parentVnode && parentVnode.context
   vm.$slots = resolveSlots(options._renderChildren, renderContext)
@@ -40,9 +41,11 @@ export function initRender (vm: Component) {
   // they need to be reactive so that HOCs using them are always updated
   const parentData = parentVnode && parentVnode.data
 
+  // 定义响应式属性$attrs, $listeners
   /* istanbul ignore else */
   if (process.env.NODE_ENV !== 'production') {
     defineReactive(vm, '$attrs', parentData && parentData.attrs || emptyObject, () => {
+      // isUpdatingChildComponent在更新组件时设置为true，因为更新组件时，会更新该属性，所以不需要提示
       !isUpdatingChildComponent && warn(`$attrs is readonly.`, vm)
     }, true)
     defineReactive(vm, '$listeners', options._parentListeners || emptyObject, () => {

@@ -35,6 +35,7 @@ const sharedPropertyDefinition = {
   set: noop
 }
 
+// 在target上定义与key同名的属性，访问该属性时，代理成访问sourceKey上的同名属性
 export function proxy (target: Object, sourceKey: string, key: string) {
   sharedPropertyDefinition.get = function proxyGetter () {
     return this[sourceKey][key]
@@ -46,6 +47,7 @@ export function proxy (target: Object, sourceKey: string, key: string) {
 }
 
 export function initState (vm: Component) {
+  // 用来收集该组件实例的所有的watcher对象
   vm._watchers = []
   const opts = vm.$options
   if (opts.props) initProps(vm, opts.props)
@@ -64,6 +66,7 @@ export function initState (vm: Component) {
 // 初始化props选项：把props选项的属性定义到vm实例的_props属性上，并设置这些属性成响应式属性。
 // 同时在vm实例上定义_props代理，即访问vm与_props同名属性时，实际访问的是vm_props同名属性。
 function initProps (vm: Component, propsOptions: Object) {
+  // $options.propsData存储着外界传递进来的props的值。
   const propsData = vm.$options.propsData || {}
   const props = vm._props = {}
   // cache prop keys so that future props updates can iterate using Array
@@ -73,15 +76,16 @@ function initProps (vm: Component, propsOptions: Object) {
   const isRoot = !vm.$parent
   // root instance props should be converted
   if (!isRoot) {
+    // 不值props的值转换成响应式的数据
     toggleObserving(false)
   }
   for (const key in propsOptions) {
     keys.push(key)
-    // prop的有效性检查
+    // prop的数据是否符合预期的类型
     const value = validateProp(key, propsOptions, propsData, vm)
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
-      // prop 键的有效性检查
+      // prop 键的有效性检查，把key转换成连字符加小写的形式
       const hyphenatedKey = hyphenate(key)
       if (isReservedAttribute(hyphenatedKey) ||
           config.isReservedAttr(hyphenatedKey)) {
@@ -90,7 +94,7 @@ function initProps (vm: Component, propsOptions: Object) {
           vm
         )
       }
-      // 定义_props成响应式属性
+      // 定义_props成响应式属性，但是它的值的响应性依赖提供的值本来的响应性
       defineReactive(props, key, value, () => {
         if (!isRoot && !isUpdatingChildComponent) {
           warn(
@@ -108,6 +112,8 @@ function initProps (vm: Component, propsOptions: Object) {
     // static props are already proxied on the component's prototype
     // during Vue.extend(). We only need to proxy props defined at
     // instantiation here.
+    // 只有key不在实例对象上以及它的原型上时，才进行代理，这个一个针对子组件的优化，因为子组件来说，
+    // 这个代理工作是在创建子组件构造函数时就完成了。这样有助提升性能
     if (!(key in vm)) {
       // 代理_props
       proxy(vm, `_props`, key)
@@ -117,12 +123,15 @@ function initProps (vm: Component, propsOptions: Object) {
 }
 
 // 初始化data选项：把data选项的属性定义到vm实例的_data属性上，同时在vm定义代理，即访问vm上与data
-// 选项同名属性，实际访问的是vm的_data上的同名属性。然后再观测_data。
+// 选项同名属性，实际访问的是vm的_data上的同名属性。然后再观测_data，即转换成响应式属性。
 function initData (vm: Component) {
   let data = vm.$options.data
+  // 合并的时候，data选项最终都会被规范化成一个函数，因为可能在beforeCreate钩子中改变它，所以此处
+  // 进行了判断
   data = vm._data = typeof data === 'function'
     ? getData(data, vm)
     : data || {}
+  // 最终的data选项要是一个纯对象
   if (!isPlainObject(data)) {
     data = {}
     process.env.NODE_ENV !== 'production' && warn(
@@ -136,6 +145,7 @@ function initData (vm: Component) {
   const props = vm.$options.props
   const methods = vm.$options.methods
   let i = keys.length
+  // 遍历data选项中所有的属性
   while (i--) {
     const key = keys[i]
     // 属性不能和method同名
@@ -155,19 +165,23 @@ function initData (vm: Component) {
         vm
       )
     } else if (!isReserved(key)) {
-      // 设置_data代理
+      // 设置_data代理，只代理不是$,_开头的属性，即非内部的属性。
+      // 即访问vm[key] -> vm._data[key],这也就是我们可以在this.xxx访问this._data.xxx的原因
       proxy(vm, `_data`, key)
     }
   }
-  // 观测数据
+  // 观测数据，即把_data转换成响应式
   // observe data: _data
   observe(data, true /* asRootData */)
 }
 
+// 执行data选项函数，获取真正data对象
 export function getData (data: Function, vm: Component): any {
   // #7573 disable dep collection when invoking data getters
+  // 防止使用props初始化data时收集冗余的依赖
   pushTarget()
   try {
+    // data函数的执行上下文为组件实例对象vm
     return data.call(vm, vm)
   } catch (e) {
     handleError(e, vm, `data()`)
@@ -183,6 +197,7 @@ const computedWatcherOptions = { lazy: true }
 // 来存储所有的计算属性的观察者。
 function initComputed (vm: Component, computed: Object) {
   // $flow-disable-line
+  // 定义_computedWatchers属性收集该组件实例宿友的计算属性观察者
   const watchers = vm._computedWatchers = Object.create(null)
   // computed properties are just getters during SSR
   const isSSR = isServerRendering()
@@ -212,7 +227,7 @@ function initComputed (vm: Component, computed: Object) {
     // component prototype. We only need to define computed properties defined
     // at instantiation here.
     if (!(key in vm)) {
-      // 定义一个计算属性
+      // 定义一个计算属性，即在组件vm实例对象上，定义一个同名的属性，并且该属性是一个访问器属性(定义了getter/setter)
       defineComputed(vm, key, userDef)
     } else if (process.env.NODE_ENV !== 'production') {
       // 计算属性键不能与data,props选项键同名
@@ -234,6 +249,7 @@ export function defineComputed (
 ) {
   // 只有在非服务器端渲染才会缓存计算属性
   const shouldCache = !isServerRendering()
+
   if (typeof userDef === 'function') {
     sharedPropertyDefinition.get = shouldCache
       ? createComputedGetter(key)
@@ -249,6 +265,7 @@ export function defineComputed (
   }
   if (process.env.NODE_ENV !== 'production' &&
       sharedPropertyDefinition.set === noop) {
+    // 在没有定义计算属性set的时候，尝试修改计算属性的值时，会进行错误提示
     sharedPropertyDefinition.set = function () {
       warn(
         `Computed property "${key}" was assigned to but it has no setter.`,

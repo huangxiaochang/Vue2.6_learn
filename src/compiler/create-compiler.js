@@ -8,7 +8,7 @@ import { createCompileToFunctionFn } from './to-function'
 export function createCompilerCreator (baseCompile: Function): Function { 
   return function createCompiler (baseOptions: CompilerOptions) {
     // 该方法作用为，把模板编译成render函数。主要的编译工作是有baseCompile函数来进行。
-    // 该函数主要是为了合并编译的选项和一些编译错误的提示。
+    // 该函数主要是为了合并编译的选项和一些编译错误的提示，同时调用baseCompile编译模板。
     function compile (
       template: string,
       options?: CompilerOptions // 平台的编译选项

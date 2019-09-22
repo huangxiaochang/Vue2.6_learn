@@ -185,6 +185,7 @@ export function queueWatcher (watcher: Watcher) {
       queue.splice(i + 1, 0, watcher)
     }
     // queue the flush
+    // 保证在同一次事件循环中多次调用queueWatcher时，只执行if内代码一次
     if (!waiting) {
       waiting = true
 

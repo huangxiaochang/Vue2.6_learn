@@ -97,6 +97,7 @@ export function createCompileToFunctionFn (compile: Function): Function {
     // 把函数体使用new Function创建成函数
     const res = {}
     const fnGenErrors = []
+    // 把渲染函数体字符串转换成渲染函数
     res.render = createFunction(compiled.render, fnGenErrors)
     res.staticRenderFns = compiled.staticRenderFns.map(code => {
       return createFunction(code, fnGenErrors)

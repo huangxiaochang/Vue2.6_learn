@@ -201,7 +201,7 @@ export function parse (
       )
     }
   }
-
+  // 进行词法分析
   parseHTML(template, {
     warn,
     expectHTML: options.expectHTML,

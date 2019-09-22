@@ -15,6 +15,7 @@ export function initEvents (vm: Component) {
   vm._events = Object.create(null)
   vm._hasHookEvent = false
   // init parent attached events
+  // _parentListeners属性是在创建子组件实例时定义的(createComponentInstanceForVnode )
   const listeners = vm.$options._parentListeners
   if (listeners) {
     // 更新组件的父监听器：即会把在父级监听组件的事件(在组件标签上定义的监听)更新到组件的事件中心。

@@ -33,8 +33,10 @@ export function initInjections (vm: Component) {
           )
         })
       } else {
-        // 在组件实例上定义inject同名的属性，在定义之前，会先关掉观测，所以inject不是响应式的属性，
+        // 在组件实例上定义inject同名的属性，在定义之前，会先关掉观测，所以inject的值不是响应式的属性，
         // 不过如果provide本来就是响应式的，那么它也是响应式的。
+        
+        // 在vm实例上定义inject同名的响应式属性，该属性的值响应式取决于provide提供的值的响应式
         defineReactive(vm, key, result[key])
       }
     })

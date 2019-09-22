@@ -38,6 +38,8 @@ export function initLifecycle (vm: Component) {
   // 建立组件之间的父子关系
   // locate first non-abstract parent
   let parent = options.parent
+  // 查找第一个非抽象的组件作为父级，抽象组件：设置了abstract=true的组件，如keep-alive,transition。
+  // 抽象组件一般不渲染真实DOM，并且不会出现在父子关系的路径上
   if (parent && !options.abstract) {
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent
@@ -150,7 +152,8 @@ export function lifecycleMixin (Vue: Class<Component>) {
   }
 }
 
-// 进行组件的挂载
+// 进行组件的挂载：创建一个render watcher，在创建该watcher时，会进行求值，即执行updateComponent方法，
+// 该方法进行执行render函数返回vnode,然后再调用_update方法进行patch成真实的dom.
 export function mountComponent (
   vm: Component,
   el: ?Element,
@@ -177,6 +180,7 @@ export function mountComponent (
       }
     }
   }
+  // 在执行beforeMount生命钩子之前，已经进行了模板编译成渲染函数的操作
   callHook(vm, 'beforeMount')
 
   let updateComponent

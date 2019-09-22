@@ -46,7 +46,8 @@ export function initMixin (Vue: Class<Component>) {
         vm
       )
     }
-    // 设置渲染函数的代理: 即代理到Vue实例的$data选项和全局属性和方法
+    // 设置渲染函数的代理: 即代理到Vue实例的$data选项和全局属性和方法，这样当我们在模板中访问
+    // 不存在的属性时，会给出友好的错误提示
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
       initProxy(vm)
@@ -55,13 +56,13 @@ export function initMixin (Vue: Class<Component>) {
     }
     // expose real self
     vm._self = vm
-    initLifecycle(vm)
-    initEvents(vm)
-    initRender(vm)
+    initLifecycle(vm) // 建立组件的父子关系和定义一些生命周期相关的属性
+    initEvents(vm) // 定义收集组件自定义事件_events属性，和把组件的父监听器更新到组件中(收集到_events)
+    initRender(vm) // 定义渲染函数相关的属性和方法，如$vnode，$slots，$scopedSlots，_c,$createElement,$attrs,$listeners
     callHook(vm, 'beforeCreate')
     initInjections(vm) // resolve injections before data/props
-    initState(vm)
-    initProvide(vm) // resolve provide after data/props
+    initState(vm) // 初始化props,methods,data,computed,watch
+    initProvide(vm) // resolve provide after data/props，在vm上定义_provided属性指向options.provide
     callHook(vm, 'created')
 
     /* istanbul ignore if */
