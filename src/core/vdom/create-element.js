@@ -48,7 +48,8 @@ export function createElement (
 export function _createElement (
   context: Component,
   tag?: string | Class<Component> | Function | Object,
-  data?: VNodeData,
+  // 标签上定义的属性，事件监听。class,style等,模板解析代码生成传递的参数，或者开发自定义render时提供
+  data?: VNodeData, 
   children?: any,
   normalizationType?: number
 ): VNode | Array<VNode> {

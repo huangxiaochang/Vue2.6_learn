@@ -90,7 +90,7 @@ export function initInternalComponent (vm: Component, options: InternalComponent
 
   // componentOptions：子组件的一些选项，在创建子组件vnode时定义(vdom/create-component)。
   const vnodeComponentOptions = parentVnode.componentOptions
-  opts.propsData = vnodeComponentOptions.propsData // 在子组件标签中v-bind的数据
+  opts.propsData = vnodeComponentOptions.propsData // 在子组件标签中v-bind的数据，在创建组件vnode时生成
   opts._parentListeners = vnodeComponentOptions.listeners // 在子组件标签中绑定的事件监听器
   opts._renderChildren = vnodeComponentOptions.children
   opts._componentTag = vnodeComponentOptions.tag

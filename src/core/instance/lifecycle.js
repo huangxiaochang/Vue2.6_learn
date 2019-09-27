@@ -314,6 +314,7 @@ export function updateChildComponent (
   }
 }
 
+// 检查组件的父组件是否处于失效的状态
 function isInInactiveTree (vm) {
   while (vm && (vm = vm.$parent)) {
     if (vm._inactive) return true
@@ -324,15 +325,19 @@ function isInInactiveTree (vm) {
 export function activateChildComponent (vm: Component, direct?: boolean) {
   if (direct) {
     vm._directInactive = false
+    // 组件的父组件是否已经失效，如果是，则直接返回
     if (isInInactiveTree(vm)) {
       return
     }
   } else if (vm._directInactive) {
     return
   }
+  // 组件处于失活状态时
   if (vm._inactive || vm._inactive === null) {
+    // 设置组件成激活状态
     vm._inactive = false
     for (let i = 0; i < vm.$children.length; i++) {
+      // 递归执行子组件的activated钩子函数,所以actived钩子执行的顺序为先子后父
       activateChildComponent(vm.$children[i])
     }
     callHook(vm, 'activated')

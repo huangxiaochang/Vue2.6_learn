@@ -66,7 +66,9 @@ export function initState (vm: Component) {
 // 初始化props选项：把props选项的属性定义到vm实例的_props属性上，并设置这些属性成响应式属性。
 // 同时在vm实例上定义_props代理，即访问vm与_props同名属性时，实际访问的是vm_props同名属性。
 function initProps (vm: Component, propsOptions: Object) {
-  // $options.propsData存储着外界传递进来的props的值。
+  // $options.propsData存储着外界传递进来的props的值。$options.propsData属性是在_init合并子组件
+  // options时定义，合并时的来源组件占位vnode的componentOptions，componentOptions是生成vnode时提供，
+  // 而其中的propsData是在模板解析代码生成时提供的，即解析组件占位标签上的属性得来
   const propsData = vm.$options.propsData || {}
   const props = vm._props = {}
   // cache prop keys so that future props updates can iterate using Array

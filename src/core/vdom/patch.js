@@ -246,7 +246,7 @@ export function createPatchFunction (backend) {
       // 同时子组件也已经设置了子组件占位vnode的elm属性（子组件根dom节点），在这种情境下，我们只需要返回该元素即可。
       if (isDef(vnode.componentInstance)) {
         initComponent(vnode, insertedVnodeQueue)
-        // 把组件的dom插入到父节点中
+        // 把子组件的根dom插入到父节点中
         insert(parentElm, vnode.elm, refElm)
         if (isTrue(isReactivated)) {
           // 如果是keep-alive组件
@@ -537,6 +537,7 @@ export function createPatchFunction (backend) {
     }
   }
 
+  // 新旧vnode相同时(即符合sameVnode定义)，执行该函数
   function patchVnode (
     oldVnode,
     vnode,
@@ -545,6 +546,7 @@ export function createPatchFunction (backend) {
     index,
     removeOnly
   ) {
+    // 完全相同
     if (oldVnode === vnode) {
       return
     }
@@ -581,33 +583,43 @@ export function createPatchFunction (backend) {
     let i
     const data = vnode.data
     if (isDef(data) && isDef(i = data.hook) && isDef(i = i.prepatch)) {
+      // 当更新的是组件vnode时，则执行prepatch进行组件的占位vnode，listeners,slot等内容的更新
       i(oldVnode, vnode)
     }
 
     const oldCh = oldVnode.children
     const ch = vnode.children
     if (isDef(data) && isPatchable(vnode)) {
+      // 执行所有module的update和用户定义的update钩子函数
       for (i = 0; i < cbs.update.length; ++i) cbs.update[i](oldVnode, vnode)
       if (isDef(i = data.hook) && isDef(i = i.update)) i(oldVnode, vnode)
     }
     if (isUndef(vnode.text)) {
       if (isDef(oldCh) && isDef(ch)) {
+        // diff孩子vnode
         if (oldCh !== ch) updateChildren(elm, oldCh, ch, insertedVnodeQueue, removeOnly)
       } else if (isDef(ch)) {
+        // 旧节点孩子节点不需要时
         if (process.env.NODE_ENV !== 'production') {
           checkDuplicateKeys(ch)
         }
+        // 如果旧节点是文本节点，则移除节点的文本
         if (isDef(oldVnode.text)) nodeOps.setTextContent(elm, '')
+        // 将新孩子节点批量插入到新节点elm下
         addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue)
       } else if (isDef(oldCh)) {
+        // 更新的是空节点时，则将旧节点全部移除
         removeVnodes(oldCh, 0, oldCh.length - 1)
       } else if (isDef(oldVnode.text)) {
+        // 只有旧节点是文本节点，则清除节点的文本内容
         nodeOps.setTextContent(elm, '')
       }
     } else if (oldVnode.text !== vnode.text) {
+      // 如果是一个文本节点并且新旧文本内容不同，则直接替换文本内容
       nodeOps.setTextContent(elm, vnode.text)
     }
     if (isDef(data)) {
+      // 执行postpatch钩子函数
       if (isDef(i = data.hook) && isDef(i = i.postpatch)) i(oldVnode, vnode)
     }
   }
@@ -792,7 +804,9 @@ export function createPatchFunction (backend) {
         }
 
         // replacing existing element
+        // 根组件的$el选项对应的元素
         const oldElm = oldVnode.elm
+        // 根组件的$el选项对应的元素的父元素，如body等
         const parentElm = nodeOps.parentNode(oldElm)
 
         // create new node

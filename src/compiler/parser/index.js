@@ -221,12 +221,13 @@ export function parse (
       if (isIE && ns === 'svg') {
         attrs = guardIESVGBug(attrs)
       }
-
+      // 创建ast元素
       let element: ASTElement = createASTElement(tag, attrs, currentParent)
       if (ns) {
         element.ns = ns
       }
 
+      // 处理ast元素，即处理相关的指令， 如v-for指令，解析出相应的部分
       if (process.env.NODE_ENV !== 'production') {
         if (options.outputSourceRange) {
           element.start = start
@@ -282,7 +283,7 @@ export function parse (
         processIf(element)
         processOnce(element)
       }
-
+      // 管理ast树
       if (!root) {
         root = element
         if (process.env.NODE_ENV !== 'production') {
