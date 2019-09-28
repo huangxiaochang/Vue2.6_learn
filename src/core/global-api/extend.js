@@ -45,7 +45,7 @@ export function initExtend (Vue: GlobalAPI) {
     Sub.cid = cid++
     // 子类的options：父类的options和子类的extendOptions合并
     Sub.options = mergeOptions(
-      Super.options,
+      Super.options, // componets, filters, directives, base等
       extendOptions
     )
     // 设置静态属性super指向父类

@@ -55,7 +55,7 @@ const componentVNodeHooks = {
       child.$mount(hydrating ? vnode.elm : undefined, hydrating)
     }
   },
-  // 组件的patch
+  // 组件的更新patch
   prepatch (oldVnode: MountedComponentVNode, vnode: MountedComponentVNode) {
     const options = vnode.componentOptions
     const child = vnode.componentInstance = oldVnode.componentInstance
@@ -108,7 +108,7 @@ const hooksToMerge = Object.keys(componentVNodeHooks)
 export function createComponent (
   Ctor: Class<Component> | Function | Object | void,
   data: ?VNodeData,
-  context: Component,
+  context: Component, // render函数对应的vm
   children: ?Array<VNode>,
   tag?: string
 ): VNode | Array<VNode> | void {
@@ -116,6 +116,7 @@ export function createComponent (
     return
   }
 
+  // 获取Vue构造函数，在_init合并时以Sub.options为原型创建,Sub.options中合并定义了_base
   const baseCtor = context.$options._base
 
   // plain options object: turn it into a constructor

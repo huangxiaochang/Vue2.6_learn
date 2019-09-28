@@ -81,3 +81,11 @@
 		getter来进行重新求值，每次求完值后，会把dirty设置成false，所以下一次访问计算属性时，不会进行重新的求值，会直接返回上一次的值。只有当计算属性依赖的响应式属性发生变化时，会调用watcher的update方法，把dirty值
 		设置成true，这样就可以在下一次访问计算属性时，进行重新求值。
 	
+# 父组件传给子组件prop改变时，子组件会进行更新的原理:
+	1.父组件prop的数据改变时，会进行重新的render.
+	2.在render重新生成vnode时，对于子组件占位vnode，它也会发生相应的变化，如propsData属性会发生变化。
+	3.在父组件进行patch时，对于相似的vnode，会进行patchVnode。
+	4.对于组件的占位vnode进行patchVnode时候，会进行更新组件的vnode,listeners,props等操作，其中因为
+	组件的props是响应式的属性，所以在更新重新赋值组件的prop时候，会导致prop属性的setter，所以会依赖该prop属性的依赖的update，所以如果子组件的render中有依赖该prop时，那么会进行子组件的rerender.
+
+

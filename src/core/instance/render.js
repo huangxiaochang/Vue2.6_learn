@@ -99,7 +99,8 @@ export function renderMixin (Vue: Class<Component>) {
       // 在这里不需要维护一个栈，因为所有的渲染函数调用时相互分离的。嵌套组件渲染函数会在
       // 父组件patch过程中被调用。
       currentRenderingInstance = vm
-      // 调用render渲染函数返回vnode
+      // 调用render渲染函数返回vnode,执行render时，会触发模板中响应式数据属性的getter，从而
+      // 进行了render watcher的收集
       vnode = render.call(vm._renderProxy, vm.$createElement)
     } catch (e) {
       // 处理执行渲染函数过程中的报错

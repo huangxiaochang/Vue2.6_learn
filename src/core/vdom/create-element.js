@@ -26,7 +26,7 @@ const ALWAYS_NORMALIZE = 2
 // wrapper function for providing a more flexible interface
 // without getting yelled at by flow
 export function createElement (
-  context: Component,
+  context: Component, // 组件vm, 即调用render的vm
   tag: any,
   data: any,
   children: any,
@@ -89,9 +89,12 @@ export function _createElement (
     data.scopedSlots = { default: children[0] }
     children.length = 0
   }
+  // 规范化children，规范化后，children每一个都为一个vnode
   if (normalizationType === ALWAYS_NORMALIZE) {
+    // 开发者自定义的render时
     children = normalizeChildren(children)
   } else if (normalizationType === SIMPLE_NORMALIZE) {
+    // 模板解析时的render函数
     children = simpleNormalizeChildren(children)
   }
   let vnode, ns
@@ -111,7 +114,7 @@ export function _createElement (
         undefined, undefined, context
       )
     } else if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
-      // component
+      // component，如果是一个组件标签时，创建组件vnode
       vnode = createComponent(Ctor, data, context, children, tag)
     } else {
       // unknown or unlisted namespaced elements
@@ -123,7 +126,7 @@ export function _createElement (
       )
     }
   } else {
-    // direct component options / constructor
+    // direct component options / constructor，如果tag是一个组件选项或者组件的构造器时，则创建组件vnode
     vnode = createComponent(tag, data, context, children)
   }
   if (Array.isArray(vnode)) {

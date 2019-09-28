@@ -180,7 +180,9 @@ function initData (vm: Component) {
 // 执行data选项函数，获取真正data对象
 export function getData (data: Function, vm: Component): any {
   // #7573 disable dep collection when invoking data getters
-  // 防止使用props初始化data时收集冗余的依赖
+  // 防止使用props初始化data时收集冗余的依赖,因为在初始化的时候，此时的Dep.target会为父组件的
+  // render watcher，这样当在data选项中使用prop,inject时，会把父组件的render watcher收集到prop,
+  // inject等的dep中
   pushTarget()
   try {
     // data函数的执行上下文为组件实例对象vm

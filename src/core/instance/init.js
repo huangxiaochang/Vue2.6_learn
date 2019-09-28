@@ -82,6 +82,7 @@ export function initMixin (Vue: Class<Component>) {
 // 子组件合并策略: 即把在子组件占位vnode上定义的propsData，listeners，children，tag等合并
 // 到子组件的$options选项中
 export function initInternalComponent (vm: Component, options: InternalComponentOptions) {
+  // 以子类构造函数Sub的options选项为原型
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
   const parentVnode = options._parentVnode

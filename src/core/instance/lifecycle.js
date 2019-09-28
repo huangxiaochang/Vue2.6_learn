@@ -234,12 +234,13 @@ export function mountComponent (
   return vm
 }
 
+// 更新组件：更新vnode，listeners等
 export function updateChildComponent (
-  vm: Component,
-  propsData: ?Object,
-  listeners: ?Object,
-  parentVnode: MountedComponentVNode,
-  renderChildren: ?Array<VNode>
+  vm: Component, // 组件原先的vm
+  propsData: ?Object, // 组件新的vnode的propsData
+  listeners: ?Object, // 组件新的vnode的listeners
+  parentVnode: MountedComponentVNode, // 组件新的vnode(组件占位vnode)
+  renderChildren: ?Array<VNode> // 组件新的vnode的children
 ) {
   if (process.env.NODE_ENV !== 'production') {
     isUpdatingChildComponent = true
@@ -268,6 +269,7 @@ export function updateChildComponent (
     hasDynamicScopedSlot
   )
 
+  // 更新组件占位vnode
   vm.$options._parentVnode = parentVnode
   vm.$vnode = parentVnode // update vm's placeholder node without re-render
 
@@ -284,6 +286,9 @@ export function updateChildComponent (
 
   // update props
   if (propsData && vm.$options.props) {
+    // 更新组件的_props属性，因为该属性是响应式属性，所以重新设置它的值的时候，会触发它setter，
+    // 进而进行依赖的update，如rerender.
+    // 所以父组件传给子组件的prop属性改变时，如果子组件模板中依赖该属性，那么会导致子组件的rerender
     toggleObserving(false)
     const props = vm._props
     const propKeys = vm.$options._propKeys || []
@@ -362,7 +367,9 @@ export function deactivateChildComponent (vm: Component, direct?: boolean) {
 
 export function callHook (vm: Component, hook: string) {
   // #7573 disable dep collection when invoking lifecycle hooks
-  // 生命周期钩子中使用 props 数据导致收集冗余的依赖.
+  // 生命周期钩子中使用 props 数据导致收集冗余的依赖.(7573bug：在data中访问prop属性时，由于当前的
+  // Dep.target为父组件的render watcher，所以会把它收集到prop的dep,这样在父组件对于的prop属性改变时
+  // ，子组件更新prop时，会触发父组件的render watcher，这样父组件的render watcher会被执行两次)
   // 如果不先pushTarget()，那么在子组件创建过程中执行生命周期钩子函数时，如果有访问响应式属性，
   // 因为此时Dep.target会为父级组件的render watcher,这样会把父级renderWatcher也收集到子组件的响应式
   // 属性的dep,这样子组件响应式属性变化时，会导致父级组件重新执行render。
