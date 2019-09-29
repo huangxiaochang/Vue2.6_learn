@@ -6,8 +6,8 @@ import type VNode from 'core/vdom/vnode'
  * Runtime helper for resolving raw children VNodes into a slot object.
  */
 export function resolveSlots (
-  children: ?Array<VNode>,
-  context: ?Component
+  children: ?Array<VNode>, // 组件占位vnode的children
+  context: ?Component // 占位vnode的上下文，即父组件vm
 ): { [key: string]: Array<VNode> } {
   if (!children || !children.length) {
     return {}
@@ -25,7 +25,7 @@ export function resolveSlots (
     if ((child.context === context || child.fnContext === context) &&
       data && data.slot != null
     ) {
-      const name = data.slot
+      const name = data.slot // 插槽的名称
       const slot = (slots[name] || (slots[name] = []))
       if (child.tag === 'template') {
         slot.push.apply(slot, child.children || [])
@@ -33,10 +33,12 @@ export function resolveSlots (
         slot.push(child)
       }
     } else {
+      // 默认插槽
       (slots.default || (slots.default = [])).push(child)
     }
   }
   // ignore slots that contains only whitespace
+  // 忽略只有空格的插槽
   for (const name in slots) {
     if (slots[name].every(isWhitespace)) {
       delete slots[name]

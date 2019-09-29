@@ -78,7 +78,7 @@ export function createPatchFunction (backend) {
   const cbs = {}
 
   const { modules, nodeOps } = backend
-
+  // 获取模块的钩子(create, update等)，并存到cbs中
   for (i = 0; i < hooks.length; ++i) {
     cbs[hooks[i]] = []
     for (j = 0; j < modules.length; ++j) {
@@ -231,6 +231,7 @@ export function createPatchFunction (backend) {
     // 只有组件占位符vnode和根实例的vnode才定义了data属性
     if (isDef(i)) {
       // 只有子组件的占位vnode才定义了componentInstance属性
+      // keep-alive包裹的组件第二次被激活时，keepAlive属性才为true(在keep-alive组件中定义)
       const isReactivated = isDef(vnode.componentInstance) && i.keepAlive
       if (isDef(i = i.hook) && isDef(i = i.init)) {
         // 执行init钩子，进行子组件的创建和挂载。init钩子是在创建组件的vnode的时候定义的。
@@ -249,7 +250,7 @@ export function createPatchFunction (backend) {
         // 把子组件的根dom插入到父节点中
         insert(parentElm, vnode.elm, refElm)
         if (isTrue(isReactivated)) {
-          // 如果是keep-alive组件
+          // 如果是keep-alive包裹的组件第二次被激活，重新激活组件
           reactivateComponent(vnode, insertedVnodeQueue, parentElm, refElm)
         }
         return true
@@ -275,6 +276,7 @@ export function createPatchFunction (backend) {
     }
   }
 
+  // 重新激活keep-alive包裹的组件
   function reactivateComponent (vnode, insertedVnodeQueue, parentElm, refElm) {
     let i
     // hack for #4339: a reactivated component with inner transition
@@ -294,6 +296,8 @@ export function createPatchFunction (backend) {
     }
     // unlike a newly created component,
     // a reactivated keep-alive component doesn't insert itself
+    // 对于keep-alive组件来说，缓存vnode,所以这里vnode.elm为
+    // 前一次渲染的，则它的dom树也是前一次渲染的
     insert(parentElm, vnode.elm, refElm)
   }
 
@@ -860,7 +864,7 @@ export function createPatchFunction (backend) {
         }
       }
     }
-
+    // 调用vnode的insert钩子，在insert钩子中会执行组件的mounted或者actived钩子
     invokeInsertHook(vnode, insertedVnodeQueue, isInitialPatch)
     return vnode.elm
   }

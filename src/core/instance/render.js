@@ -24,6 +24,8 @@ export function initRender (vm: Component) {
   // 添加$vnode，$slots，$scopedSlots属性到组件实例vm上
   const parentVnode = vm.$vnode = options._parentVnode // the placeholder node in parent tree
   const renderContext = parentVnode && parentVnode.context
+  // renderContext 父组件vm, _renderChildren来源子组件初始化合并选项时的占位vnode的componentOptions
+  // 属性，在创建组件占位vnode时，把children作为了vnode中componentOptions属性的属性
   vm.$slots = resolveSlots(options._renderChildren, renderContext)
   vm.$scopedSlots = emptyObject
   // bind the createElement fn to this instance

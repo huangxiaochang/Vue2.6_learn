@@ -263,6 +263,8 @@ export function updateChildComponent (
   // Any static slot children from the parent may have changed during parent's
   // update. Dynamic scoped slots may also have changed. In such cases, a forced
   // update is necessary to ensure correctness.
+  // 在父组件的更新过程中，任何来自父组件静态的slot,动态的作用域插槽都会发生了改变，
+  // 在这种情况下进行强制更新是必要的。如：keep-alive中包裹的动态组件
   const needsForceUpdate = !!(
     renderChildren ||               // has new static slots
     vm.$options._renderChildren ||  // has old static slots
@@ -309,6 +311,7 @@ export function updateChildComponent (
   updateComponentListeners(vm, listeners, oldListeners)
 
   // resolve slots + force update if has children
+  // keep-alive组件会执行这里
   if (needsForceUpdate) {
     vm.$slots = resolveSlots(renderChildren, parentVnode.context)
     vm.$forceUpdate()
@@ -356,6 +359,7 @@ export function deactivateChildComponent (vm: Component, direct?: boolean) {
       return
     }
   }
+  // 调用组件的deactivated钩子，先子后父
   if (!vm._inactive) {
     vm._inactive = true
     for (let i = 0; i < vm.$children.length; i++) {

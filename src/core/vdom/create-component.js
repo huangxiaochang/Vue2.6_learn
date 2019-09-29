@@ -39,11 +39,13 @@ const componentVNodeHooks = {
   init (vnode: VNodeWithData, hydrating: boolean): ?boolean {
     if (
       vnode.componentInstance &&
-      !vnode.componentInstance._isDestroyed &&
-      vnode.data.keepAlive
+      !vnode.componentInstance._isDestroyed && // 组件实例还没有销毁
+      vnode.data.keepAlive // 该组件是否已经缓存过,keepAlive在keep-alive组件中定义
     ) {
+      // keep-alive包裹的组件已经激活后(即第一次渲染不会执行这里)
       // kept-alive components, treat as a patch
       const mountedNode: any = vnode // work around flow
+      // 更新keep-alive包裹的组件
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
     } else {
       // 创建子组件
@@ -59,7 +61,9 @@ const componentVNodeHooks = {
   prepatch (oldVnode: MountedComponentVNode, vnode: MountedComponentVNode) {
     const options = vnode.componentOptions
     const child = vnode.componentInstance = oldVnode.componentInstance
-    // 更新组件的占位vnode，slot，listeners, props等
+    // 更新组件的占位vnode，slot，listeners, props等,
+    // 如果父组件的prop发生了变化，并且子组件模板中依赖该prop,那么子组件的会进行rerender,
+    // 因为prop发生变化时，会重新设置子组件的_props属性的值，同时_props是响应式的
     updateChildComponent(
       child,
       options.propsData, // updated props
@@ -94,8 +98,10 @@ const componentVNodeHooks = {
     const { componentInstance } = vnode
     if (!componentInstance._isDestroyed) {
       if (!vnode.data.keepAlive) {
+      // 不是kepp-alive包裹的组件，则调用$destroy销毁组件
         componentInstance.$destroy()
       } else {
+        // keeep-alive包裹的组件，则调用组件的deactiveated钩子，并没有销毁组件
         deactivateChildComponent(componentInstance, true /* direct */)
       }
     }
@@ -109,7 +115,7 @@ export function createComponent (
   Ctor: Class<Component> | Function | Object | void,
   data: ?VNodeData,
   context: Component, // render函数对应的vm
-  children: ?Array<VNode>,
+  children: ?Array<VNode>, // 组件的slot内容
   tag?: string
 ): VNode | Array<VNode> | void {
   if (isUndef(Ctor)) {
@@ -210,7 +216,7 @@ export function createComponent (
   const vnode = new VNode(
     `vue-component-${Ctor.cid}${name ? `-${name}` : ''}`,
     data, undefined, undefined, undefined, context,
-    { Ctor, propsData, listeners, tag, children },
+    { Ctor, propsData, listeners, tag, children }, // componentOptions, children属性为slot的vnode
     asyncFactory
   )
 
