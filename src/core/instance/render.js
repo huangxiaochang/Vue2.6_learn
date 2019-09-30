@@ -80,7 +80,8 @@ export function renderMixin (Vue: Class<Component>) {
     const { render, _parentVnode } = vm.$options
 
     if (_parentVnode) {
-      // 子组件的slot的vnode是在父组件中生成的
+      // 处理作用域插槽，并定义实例上的$scopedSlots属性。该属性会在组件render中被用到。
+      // 该属性为插槽名为键，函数为值的对象，执行相应的函数，会得到插槽中相应的vnode
       vm.$scopedSlots = normalizeScopedSlots(
         _parentVnode.data.scopedSlots,
         vm.$slots,

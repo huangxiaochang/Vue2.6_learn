@@ -434,6 +434,7 @@ function containsSlotChild (el: ASTNode): boolean {
   return false
 }
 
+// 生成作用域插槽render代码
 function genScopedSlot (
   el: ASTElement,
   state: CodegenState
