@@ -203,7 +203,7 @@ export function createPatchFunction (backend) {
         // 创建孩子节点并插入父节点中，所以dom节点的创建和插入是从父到子的。
         createChildren(vnode, children, insertedVnodeQueue)
         if (isDef(data)) {
-          // 调用节点create的钩子函数
+          // 调用节点create的钩子函数，在钩子中可以进行一些操作，如添加事件监听器等等
           invokeCreateHooks(vnode, insertedVnodeQueue)
         }
         // 把dom节点插入到相应的位置，子组件首次渲染parentElm=undefined，所以并没插入，
@@ -762,6 +762,7 @@ export function createPatchFunction (backend) {
     }
 
     let isInitialPatch = false
+    // 用来收集vnode插入dom中的顺序，先子后父，在插入之后，会执行相应的钩子
     const insertedVnodeQueue = []
 
     if (isUndef(oldVnode)) {

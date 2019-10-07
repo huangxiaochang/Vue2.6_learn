@@ -73,6 +73,7 @@ const componentVNodeHooks = {
     )
   },
 
+  // 组件插入Dom树时的钩子，调用该钩子时，组件已经渲染完成并插入了dom树
   insert (vnode: MountedComponentVNode) {
     const { context, componentInstance } = vnode
     if (!componentInstance._isMounted) {
@@ -94,6 +95,7 @@ const componentVNodeHooks = {
     }
   },
 
+  // 在patch过程中，如果是销毁时，会执行该函数进行组件的销毁
   destroy (vnode: MountedComponentVNode) {
     const { componentInstance } = vnode
     if (!componentInstance._isDestroyed) {

@@ -47,9 +47,14 @@ const useMicrotaskFix = isUsingMicroTask && !(isFF && Number(isFF[1]) <= 53)
 function add (
   name: string,
   handler: Function,
-  capture: boolean,
-  passive: boolean
+  capture: boolean, // 是否使用事件捕获模式
+  passive: boolean // 为true时，则告诉浏览器在事件的冒泡阶段，不使用prevent修饰符
 ) {
+  // passive事件修饰符可以提升性能，解决滑动卡顿的问题
+  // 设置该属性为true，则告诉浏览器，在事件的冒泡阶段，代码中不会使用prevent修饰符，就算使用，
+  // 浏览器也会忽略该修饰符。因为在不设置passive属性为true时，事件在冒泡的阶段每次都会去检测有没有使用
+  // 了prevent修饰符，在检测的阶段需要时间延时去检测，所以会造成了滑动的卡顿。
+  
   // async edge case #6566: inner click event triggers patch, event handler
   // attached to outer element during patch, and triggered again. This
   // happens because browsers fire microtask ticks between event propagation.
@@ -102,13 +107,14 @@ function remove (
   )
 }
 
+// 更新原生事件监听器
 function updateDOMListeners (oldVnode: VNodeWithData, vnode: VNodeWithData) {
   if (isUndef(oldVnode.data.on) && isUndef(vnode.data.on)) {
     return
   }
   const on = vnode.data.on || {}
   const oldOn = oldVnode.data.on || {}
-  target = vnode.elm
+  target = vnode.elm // 真实dom
   normalizeEvents(on)
   updateListeners(on, oldOn, add, remove, createOnceHandler, vnode.context)
   target = undefined

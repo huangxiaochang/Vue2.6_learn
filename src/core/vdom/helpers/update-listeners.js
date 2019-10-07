@@ -11,6 +11,7 @@ import {
   isPlainObject
 } from 'shared/util'
 
+// cached函数为创建纯函数的缓存。即会缓存函数的执行结果，缓存的key为函数参数name
 const normalizeEvent = cached((name: string): {
   name: string,
   once: boolean,
@@ -32,7 +33,7 @@ const normalizeEvent = cached((name: string): {
     passive
   }
 })
-
+// 为了保证事件监听器只添加一次
 export function createFnInvoker (fns: Function | Array<Function>, vm: ?Component): Function {
   function invoker () {
     const fns = invoker.fns
@@ -51,6 +52,8 @@ export function createFnInvoker (fns: Function | Array<Function>, vm: ?Component
 }
 
 // 更新事件监听器：即把新添加的事件添加，把同名的更新，把不存在的移除。
+// 因为该函数既处理原生事件，也处理组件事件，而两者的add和remove都是不同的，所以这里需要
+// 传入add和remove来进行不同事件的不同处理。
 export function updateListeners (
   on: Object,
   oldOn: Object,
