@@ -13,10 +13,11 @@ import {
 
 export const transitionProps = {
   name: String,
-  appear: Boolean,
+  appear: Boolean, // 是否是初始渲染过度
   css: Boolean,
-  mode: String,
-  type: String,
+  mode: String, // 过度的模式
+  type: String, // 监听完成的类型：animation/transition
+  // 自定义过度类名
   enterClass: String,
   leaveClass: String,
   enterToClass: String,
@@ -26,7 +27,7 @@ export const transitionProps = {
   appearClass: String,
   appearActiveClass: String,
   appearToClass: String,
-  duration: [Number, String, Object]
+  duration: [Number, String, Object] // 过度持续时间
 }
 
 // in case the child is also an abstract component, e.g. <keep-alive>
@@ -84,8 +85,10 @@ export default {
   name: 'transition',
   props: transitionProps,
   abstract: true,
-
+  // transitioin组件的render阶段只获取一些动画的数据，并且返回了应该渲染的vnode(包裹的vnode)，
+  // 并没有进行真正的动画，真正的动画是在vnode的patch过程中的钩子函数里进行
   render (h: Function) {
+    // 获取<transition>包裹的子节点
     let children: any = this.$slots.default
     if (!children) {
       return
@@ -110,6 +113,8 @@ export default {
     const mode: string = this.mode
 
     // warn invalid mode
+    // in-out: 新元素先进行过度，完成之后当前元素过度离开
+    // out-in: 当前元素先进行过度，完成之后新元素过度进入
     if (process.env.NODE_ENV !== 'production' &&
       mode && mode !== 'in-out' && mode !== 'out-in'
     ) {
@@ -142,6 +147,8 @@ export default {
     // ensure a key that is unique to the vnode type and to this transition
     // component instance. This key will be used to remove pending leaving nodes
     // during entering.
+    // 确保vnode类型的key和transition组件实例的key是唯一的，该key会被用于去移除等待过度离开
+    // 的节点当在过度进入的时候
     const id: string = `__transition-${this._uid}-`
     child.key = child.key == null
       ? child.isComment
@@ -151,6 +158,7 @@ export default {
         ? (String(child.key).indexOf(id) === 0 ? child.key : id + child.key)
         : child.key
 
+    // 把过度所需的一些数据合并到<transition>包裹的child的data中
     const data: Object = (child.data || (child.data = {})).transition = extractTransitionData(this)
     const oldRawChild: VNode = this._vnode
     const oldChild: VNode = getRealChild(oldRawChild)
