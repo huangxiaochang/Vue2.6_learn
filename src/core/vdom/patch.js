@@ -203,7 +203,8 @@ export function createPatchFunction (backend) {
         // 创建孩子节点并插入父节点中，所以dom节点的创建和插入是从父到子的。
         createChildren(vnode, children, insertedVnodeQueue)
         if (isDef(data)) {
-          // 调用节点create的钩子函数，在钩子中可以进行一些操作，如添加事件监听器等等
+          // 调用节点create的钩子函数，在钩子中可以进行一些操作，如添加事件监听器，
+          // 指令的bind钩子函数等等
           invokeCreateHooks(vnode, insertedVnodeQueue)
         }
         // 把dom节点插入到相应的位置，子组件首次渲染parentElm=undefined，所以并没插入，
@@ -337,7 +338,7 @@ export function createPatchFunction (backend) {
   }
 
   // 调用vnode的create钩子函数，并且如果也定义了insert钩子，则把该vnode收集到insertedVnodeQueue
-  // 队列中
+  // 队列中。注意，vnode的钩子函数中，对于定义了指令的vnode，会执行指令的bind钩子函数。
   function invokeCreateHooks (vnode, insertedVnodeQueue) {
     for (let i = 0; i < cbs.create.length; ++i) {
       cbs.create[i](emptyNode, vnode)
@@ -594,7 +595,8 @@ export function createPatchFunction (backend) {
     const oldCh = oldVnode.children
     const ch = vnode.children
     if (isDef(data) && isPatchable(vnode)) {
-      // 执行所有module的update和用户定义的update钩子函数
+      // 执行所有module的update和用户定义的update钩子函数，在update钩子中会更新指令，所以会执行
+      // 指令的update钩子
       for (i = 0; i < cbs.update.length; ++i) cbs.update[i](oldVnode, vnode)
       if (isDef(i = data.hook) && isDef(i = i.update)) i(oldVnode, vnode)
     }
@@ -623,7 +625,8 @@ export function createPatchFunction (backend) {
       nodeOps.setTextContent(elm, vnode.text)
     }
     if (isDef(data)) {
-      // 执行postpatch钩子函数
+      // 执行postpatch钩子函数，指令的componentUpdated钩子会在vnode 的create钩子中合并到
+      // postpatch钩子，所以指令的componentUpdated钩子会在该阶段被执行
       if (isDef(i = data.hook) && isDef(i = i.postpatch)) i(oldVnode, vnode)
     }
   }
@@ -635,6 +638,7 @@ export function createPatchFunction (backend) {
       vnode.parent.data.pendingInsert = queue
     } else {
       for (let i = 0; i < queue.length; ++i) {
+        // 指令的inserted钩子会合并到vnode的insert钩子中，所以指令的inserted钩子会在该阶段执行
         queue[i].data.hook.insert(queue[i])
       }
     }
@@ -865,7 +869,8 @@ export function createPatchFunction (backend) {
         }
       }
     }
-    // 调用vnode的insert钩子，在insert钩子中会执行组件的mounted或者actived钩子
+    // 调用vnode的insert钩子，在insert钩子中会执行组件的mounted或者actived钩子，
+    // 或者指令的inserted钩子(会在vnode的create钩子中把指令的inserted钩子合并到vnode的insert钩子)
     invokeInsertHook(vnode, insertedVnodeQueue, isInitialPatch)
     return vnode.elm
   }

@@ -44,10 +44,11 @@ const normalize = cached(function (prop) {
   }
 })
 
+// 更新dom节点的的style属性
 function updateStyle (oldVnode: VNodeWithData, vnode: VNodeWithData) {
   const data = vnode.data
   const oldData = oldVnode.data
-
+  // 如果没有定义style属性，直接返回
   if (isUndef(data.staticStyle) && isUndef(data.style) &&
     isUndef(oldData.staticStyle) && isUndef(oldData.style)
   ) {
@@ -61,7 +62,7 @@ function updateStyle (oldVnode: VNodeWithData, vnode: VNodeWithData) {
 
   // if static style exists, stylebinding already merged into it when doing normalizeStyleData
   const oldStyle = oldStaticStyle || oldStyleBinding
-
+  // 规范化style属性，即把数组形式格式化成对象的形式
   const style = normalizeStyleBinding(vnode.data.style) || {}
 
   // store normalized style under a different key for next diff
@@ -72,12 +73,13 @@ function updateStyle (oldVnode: VNodeWithData, vnode: VNodeWithData) {
     : style
 
   const newStyle = getStyle(vnode, true)
-
+  // 移除不存在的style属性
   for (name in oldStyle) {
     if (isUndef(newStyle[name])) {
       setProp(el, name, '')
     }
   }
+  // 更新改变的style属性
   for (name in newStyle) {
     cur = newStyle[name]
     if (cur !== oldStyle[name]) {
@@ -86,7 +88,7 @@ function updateStyle (oldVnode: VNodeWithData, vnode: VNodeWithData) {
     }
   }
 }
-
+// 会在vnode创建或者更新成真实dom节点时，为该Dom添加上style属性
 export default {
   create: updateStyle,
   update: updateStyle

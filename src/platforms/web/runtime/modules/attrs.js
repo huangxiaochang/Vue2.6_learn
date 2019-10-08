@@ -112,7 +112,7 @@ function baseSetAttr (el, key, value) {
     el.setAttribute(key, value)
   }
 }
-
+// 更新dom节点的属性(style,class属性除外)
 export default {
   create: updateAttrs,
   update: updateAttrs
