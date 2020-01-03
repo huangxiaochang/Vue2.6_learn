@@ -52,7 +52,7 @@ export function initGlobalAPI (Vue: GlobalAPI) {
     return obj
   }
 
-  // 定义Vue.options.componetns/filters/directives，即组件，过滤器，指令
+  // 定义Vue.options.componetns/filters/directives，即框架全局组件，过滤器，指令
   Vue.options = Object.create(null)
   ASSET_TYPES.forEach(type => {
     Vue.options[type + 's'] = Object.create(null)

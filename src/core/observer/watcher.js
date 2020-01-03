@@ -46,8 +46,9 @@ export default class Watcher {
     vm: Component,
     // 计算属性watcher，该值即为计算属性的getter。
     // renderWatcher时，为updateComponent函数
+    // $watch时，为属性取值表达式
     expOrFn: string | Function, 
-    cb: Function, // 计算属性该cb值为空
+    cb: Function, // 计算属性, redner watcher该cb值为空, user watcher: handler
     options?: ?Object,
     isRenderWatcher?: boolean
   ) {

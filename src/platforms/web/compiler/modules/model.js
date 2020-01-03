@@ -23,6 +23,7 @@ import {
   createASTElement
 } from 'compiler/parser/index'
 
+// 在模板解析时，生成ast元素时，会调用该方法进行预处理
 function preTransformNode (el: ASTElement, options: CompilerOptions) {
   if (el.tag === 'input') {
     const map = el.attrsMap
@@ -30,6 +31,7 @@ function preTransformNode (el: ASTElement, options: CompilerOptions) {
       return
     }
 
+    // 获取绑定的input的类型
     let typeBinding
     if (map[':type'] || map['v-bind:type']) {
       typeBinding = getBindingAttr(el, 'type')
@@ -47,6 +49,7 @@ function preTransformNode (el: ASTElement, options: CompilerOptions) {
       const branch0 = cloneASTElement(el)
       // process for on the main node
       processFor(branch0)
+      // 在ast element元素上加入type属性，即在attrsList,attrsMap中加入
       addRawAttr(branch0, 'type', 'checkbox')
       processElement(branch0, options)
       branch0.processed = true // prevent it from double-processed
@@ -59,6 +62,7 @@ function preTransformNode (el: ASTElement, options: CompilerOptions) {
       const branch1 = cloneASTElement(el)
       getAndRemoveAttr(branch1, 'v-for', true)
       addRawAttr(branch1, 'type', 'radio')
+      // 处理元素上的属性
       processElement(branch1, options)
       addIfCondition(branch0, {
         exp: `(${typeBinding})==='radio'` + ifConditionExtra,

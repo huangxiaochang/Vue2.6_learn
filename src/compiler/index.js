@@ -16,7 +16,6 @@ export const createCompiler = createCompilerCreator(function baseCompile (
   
   // 解析模板，生成模板的ast树，ast树中的节点是一个js对象，该对象描述了节点的相关信息
   const ast = parse(template.trim(), options)
-
   if (options.optimize !== false) {
     // 优化生成的ast树，即标记静态节点和静态根节点，因为静态的节点生成的dom不需要改变
     optimize(ast, options)

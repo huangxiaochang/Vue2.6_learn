@@ -69,7 +69,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
     const prevEl = vm.$el
     const prevVnode = vm._vnode
     // setActiveInstance：把当前的activeInstance设置成当前的组件vm，并且返回一个函数，
-    // 调用该函数时，又把activeInstance设置会之前的组件vm。这样保证了父子组件进行__patch__,
+    // 调用该函数时，又把activeInstance设置回之前的组件vm。这样保证了父子组件进行__patch__,
     // 能够正确获取到当前的vm。
     const restoreActiveInstance = setActiveInstance(vm)
     vm._vnode = vnode
@@ -79,6 +79,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
     if (!prevVnode) {
       // initial render
       // 子组件的$el选项为undefined, 经过__patch__后返回的是子组件的根真实的Dom
+      // $el存储组件的根节点(真实节点)
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
     } else {
       // updates

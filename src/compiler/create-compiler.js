@@ -76,7 +76,8 @@ export function createCompilerCreator (baseCompile: Function): Function {
     return {
       compile,
       // createCompileToFunctionFn返回一个函数，该函数就是把模板编译成render的函数。
-      // 因为不同平台，拥有不同的compile函数，所以这里使用了柯里化进行不同的预先传参
+      // 因为不同平台，拥有不同的compile函数，所以这里使用了柯里化进行不同的预先传参.
+      // 在$mount时，实际上是调用该compileToFunctions来得到render函数的
       compileToFunctions: createCompileToFunctionFn(compile)
     }
   }

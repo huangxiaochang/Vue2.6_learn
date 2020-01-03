@@ -6,12 +6,12 @@ import { isObject, isDef, hasSymbol } from 'core/util/index'
  * Runtime helper for rendering v-for lists.
  */
 export function renderList (
-  val: any,
+  val: any, // for指令中表达式，如：item in arr,则val为arr
   render: (
-    val: any,
-    keyOrIndex: string | number,
+    val: any, // 列表中的每一项，如item
+    keyOrIndex: string | number, // 列表迭代中的每一项的索引或者key
     index?: number
-  ) => VNode
+  ) => VNode // render为v-for标签及它孩子节点的render函数
 ): ?Array<VNode> {
   let ret: ?Array<VNode>, i, l, keys, key
   if (Array.isArray(val) || typeof val === 'string') {
@@ -26,6 +26,7 @@ export function renderList (
     }
   } else if (isObject(val)) {
     if (hasSymbol && val[Symbol.iterator]) {
+      // 如果定义了iterator遍历接口，则使用该遍历接口进行遍历
       ret = []
       const iterator: Iterator<any> = val[Symbol.iterator]()
       let result = iterator.next()
@@ -34,6 +35,7 @@ export function renderList (
         result = iterator.next()
       }
     } else {
+      // 遍历对象
       keys = Object.keys(val)
       ret = new Array(keys.length)
       for (i = 0, l = keys.length; i < l; i++) {

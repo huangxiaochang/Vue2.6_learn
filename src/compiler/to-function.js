@@ -22,7 +22,7 @@ function createFunction (code, errors) {
 // 便可根据不同的平台，传进不同的编译函数
 export function createCompileToFunctionFn (compile: Function): Function {
   const cache = Object.create(null)
-  // 该函数用于返回render，staticRenderFns
+  // 该函数用于返回render，staticRenderFns，在$mount时获取render函数时，实际调用的是该函数
   return function compileToFunctions (
     template: string, // 模板
     options?: CompilerOptions, // 一些编译的选项

@@ -90,6 +90,7 @@ export function _createElement (
     children.length = 0
   }
   // 规范化children，规范化后，children每一个都为一个vnode
+  // (执行_c函数时，要先计算参数，再执行函数，所以children vnode会先创建)
   if (normalizationType === ALWAYS_NORMALIZE) {
     // 开发者自定义的render时
     children = normalizeChildren(children)

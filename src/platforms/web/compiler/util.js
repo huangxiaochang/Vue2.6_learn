@@ -10,6 +10,7 @@ export const isUnaryTag = makeMap(
 
 // Elements that you can, intentionally, leave open
 // (and which close themselves)
+// 可以闭合或者不闭合的标签
 export const canBeLeftOpenTag = makeMap(
   'colgroup,dd,dt,li,options,p,td,tfoot,th,thead,tr,source'
 )
@@ -23,3 +24,4 @@ export const isNonPhrasingTag = makeMap(
   'optgroup,option,param,rp,rt,source,style,summary,tbody,td,tfoot,th,thead,' +
   'title,tr,track'
 )
+

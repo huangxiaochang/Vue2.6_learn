@@ -78,7 +78,7 @@ function initProps (vm: Component, propsOptions: Object) {
   const isRoot = !vm.$parent
   // root instance props should be converted
   if (!isRoot) {
-    // 不值props的值转换成响应式的数据
+    // 不把props的值转换成响应式的数据，注意：该属性是响应的，只是它的值不是相应的
     toggleObserving(false)
   }
   for (const key in propsOptions) {
@@ -147,7 +147,7 @@ function initData (vm: Component) {
   const props = vm.$options.props
   const methods = vm.$options.methods
   let i = keys.length
-  // 遍历data选项中所有的属性
+  // 遍历data选项中所有的属性进行名称冲突判断和设置代理
   while (i--) {
     const key = keys[i]
     // 属性不能和method同名

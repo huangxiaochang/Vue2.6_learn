@@ -17,11 +17,11 @@
 
 	6.调用beforeCreate生命周期钩子。从该钩子调用时机可以看出，在该钩子中访问不到data,props,methods等选项。
 
-	7.解析获取inject定义的provide的值，然后再vm实例上定义同名的属性。(inject选项的属性不是响应式的，不过如果
-		它的provide本身就是响应式的，那么它也是响应式的)。
+	7.解析获取inject定义的provide的值，然后再vm实例上定义同名的属性。(inject选项的属性的值不是响应式的(该属性时响应式的，只是它的值不是)，不过如果它的provide本身就是响应式的，那么它也是响应式的)。
 
-	8.初始化props选项：把props选项的属性定义到vm实例的_props属性上，并设置这些属性成响应式属性。
-		同时在vm实例上定义_props代理，即访问vm与_props同名属性时，实际访问的是_props同名属性。
+	8.初始化props选项：把props选项的属性定义到vm实例的_props属性上，并设置这些属性成响应式属性(该属性的值的响应性依赖propData)。同时在vm实例上定义_props代理，即访问vm与_props同名属性时，
+	实际访问的是_props同名属性。
+	
 	9.初始化methods选项：在vm实例上定义metho同名属性，并绑定执行上下文为vm实例。
 
 	10.初始化data选项：把data选项的属性定义到vm实例的_data属性上，同时在vm定义代理，即访问vm上与data

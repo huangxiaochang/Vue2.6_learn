@@ -8,10 +8,12 @@ import {
   baseWarn
 } from 'compiler/helpers'
 
+// 在生成ast element元素时，调用该方法
 function transformNode (el: ASTElement, options: CompilerOptions) {
   const warn = options.warn || baseWarn
   const staticStyle = getAndRemoveAttr(el, 'style')
   if (staticStyle) {
+    // 提示使用{{}}绑定style属性语法已经移除
     /* istanbul ignore if */
     if (process.env.NODE_ENV !== 'production') {
       const res = parseText(staticStyle, options.delimiters)

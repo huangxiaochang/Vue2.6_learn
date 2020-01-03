@@ -10,12 +10,14 @@ export function baseWarn (msg: string, range?: Range) {
   console.error(`[Vue compiler]: ${msg}`)
 }
 /* eslint-enable no-unused-vars */
-
+// 获取modules中键为key的项组成数组
 export function pluckModuleFunction<F: Function> (
   modules: ?Array<Object>,
   key: string
 ): Array<F> {
   return modules
+    // modules.map(m => m[key])获取modules中键为key的值组成数组
+    // filter(_ => _)过滤调用数组中为undefined的选项
     ? modules.map(m => m[key]).filter(_ => _)
     : []
 }

@@ -29,7 +29,8 @@ export function initAssetRegisters (Vue: GlobalAPI) {
         if (type === 'directive' && typeof definition === 'function') {
           definition = { bind: definition, update: definition }
         }
-        // 注册全局的component/filter/directive，即在Vue.options中注册相应的属性
+        // 注册全局的component/filter/directive，即在在使用Vue.component等注册的全局组件、指令和过滤器，
+        // 会添加到Vue.options中相应的对象的相应的属性中
         this.options[type + 's'][id] = definition
         return definition
       }

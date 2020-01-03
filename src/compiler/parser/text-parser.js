@@ -3,7 +3,9 @@
 import { cached } from 'shared/util'
 import { parseFilters } from './filter-parser'
 
+// 匹配{{xx}} {{ xx xx }}
 const defaultTagRE = /\{\{((?:.|\r?\n)+?)\}\}/g
+// 匹配特殊字符
 const regexEscapeRE = /[-.*+?^${}()|[\]\/\\]/g
 
 const buildRegex = cached(delimiters => {

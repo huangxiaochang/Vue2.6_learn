@@ -14,8 +14,9 @@ import { isNonPhrasingTag } from 'web/compiler/util'
 import { unicodeRegExp } from 'core/util/lang'
 
 // Regular Expressions for parsing tags and attributes
-// 匹配标签的属性
+// 匹配标签的属性 即匹配 xx xx="xx" xx='' xx=xx, 其中xx为[^\s"'=<>`]+
 const attribute = /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/
+// 匹配动态参数属性，即 v-aa:[xx]xx = "xx" v-aa:[xx]xx = xx :[xx]xx = "xx" @[xx]xx = "xx"
 const dynamicArgAttribute = /^\s*((?:v-[\w-]+:|@|:|#)\[[^=]+\][^\s"'<>\/=]*)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/
 // 匹配不包含前缀的xml标签名称
 const ncname = `[a-zA-Z_][\\-\\.0-9_a-zA-Z${unicodeRegExp.source}]*`
@@ -96,7 +97,7 @@ export function parseHTML (html, options) {
         }
 
         // http://en.wikipedia.org/wiki/Conditional_comment#Downlevel-revealed_conditional_comment
-        // 可能是条件注释节点
+        // 可能是条件注释节点，如果是，简单跳过，即忽略
         if (conditionalComment.test(html)) {
           const conditionalEnd = html.indexOf(']>')
 
@@ -109,7 +110,7 @@ export function parseHTML (html, options) {
         }
 
         // Doctype:
-        // 有可能是doctype标签
+        // 有可能是doctype标签，如果是，简单的跳过，即忽略
         const doctypeMatch = html.match(doctype)
         if (doctypeMatch) {
           // vue同样不会保留doctype标签的内容，只是简单从html字符串中剔除
@@ -121,8 +122,9 @@ export function parseHTML (html, options) {
         const endTagMatch = html.match(endTag)
         if (endTagMatch) {
           const curIndex = index
+          // endTagMatch[0]匹配的整个结束标签
           advance(endTagMatch[0].length)
-          // 解析结束标签
+          // 解析结束标签，endTagMatch[1]标签名
           parseEndTag(endTagMatch[1], curIndex, index)
           continue
         }

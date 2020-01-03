@@ -1,7 +1,11 @@
 /* @flow */
 
+// 匹配函数的正则表达式，即匹配 () =>, _ =>, function [functionname] ( 等形式的函数
 const fnExpRE = /^([\w$_]+|\([^)]*?\))\s*=>|^function(?:\s+[\w$]+)?\s*\(/
+// 匹配函数调用的正则表达式，即匹配(/*这里可以是多个参数*/)
 const fnInvokeRE = /\([^)]*?\);*$/
+// 匹配简单的路径的正则表达式，即匹配任意一个字母，_, $开头，后面可选任意字符 .a, ['a'], [""], [2], [a]
+// 如：匹配: a、aa.b、 a['b']、 a["b"]、a[b]等
 const simplePathRE = /^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*|\['[^']*?']|\["[^"]*?"]|\[\d+]|\[[A-Za-z_$][\w$]*])*$/
 
 // KeyboardEvent.keyCode aliases
@@ -47,11 +51,12 @@ const modifierCode: { [key: string]: string } = {
   shift: genGuard(`!$event.shiftKey`),
   alt: genGuard(`!$event.altKey`),
   meta: genGuard(`!$event.metaKey`),
-  left: genGuard(`'button' in $event && $event.button !== 0`),
-  middle: genGuard(`'button' in $event && $event.button !== 1`),
-  right: genGuard(`'button' in $event && $event.button !== 2`)
+  left: genGuard(`'button' in $event && $event.button !== 0`), // 鼠标左键
+  middle: genGuard(`'button' in $event && $event.button !== 1`), // 鼠标滚轮
+  right: genGuard(`'button' in $event && $event.button !== 2`) // 鼠标右键
 }
 
+// 事件生成代码
 export function genHandlers (
   events: ASTElementHandlers,
   isNative: boolean
@@ -60,8 +65,10 @@ export function genHandlers (
   let staticHandlers = ``
   let dynamicHandlers = ``
   for (const name in events) {
+    // 获取生成事件处理函数的代码
     const handlerCode = genHandler(events[name])
     if (events[name] && events[name].dynamic) {
+      // 动态事件时
       dynamicHandlers += `${name},${handlerCode},`
     } else {
       staticHandlers += `"${name}":${handlerCode},`
@@ -93,6 +100,7 @@ function genWeexHandler (params: Array<any>, handlerCode: string) {
     '}'
 }
 
+// 生成事件处理函数的代码
 function genHandler (handler: ASTElementHandler | Array<ASTElementHandler>): string {
   if (!handler) {
     return 'function(){}'
@@ -107,6 +115,7 @@ function genHandler (handler: ASTElementHandler | Array<ASTElementHandler>): str
   const isFunctionInvocation = simplePathRE.test(handler.value.replace(fnInvokeRE, ''))
 
   if (!handler.modifiers) {
+    // 没有事件修饰符
     if (isMethodPath || isFunctionExpression) {
       return handler.value
     }
@@ -119,20 +128,22 @@ function genHandler (handler: ASTElementHandler | Array<ASTElementHandler>): str
     }}` // inline statement
   } else {
     let code = ''
+    // 生成事件修饰符的代码
     let genModifierCode = ''
     const keys = []
     for (const key in handler.modifiers) {
       if (modifierCode[key]) {
         genModifierCode += modifierCode[key]
-        // left/right
+        // left/right 如果是鼠标左键或者右键
         if (keyCodes[key]) {
           keys.push(key)
         }
       } else if (key === 'exact') {
+        // 精确修饰符，即有且只有某个键按下时(ctrl,shift,alt,meta)，才会触发事件
         const modifiers: ASTModifiers = (handler.modifiers: any)
         genModifierCode += genGuard(
           ['ctrl', 'shift', 'alt', 'meta']
-            .filter(keyModifier => !modifiers[keyModifier])
+            .filter(keyModifier => !modifiers[keyModifier]) // 过滤掉不存在的修饰符
             .map(keyModifier => `$event.${keyModifier}Key`)
             .join('||')
         )

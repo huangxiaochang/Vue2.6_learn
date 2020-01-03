@@ -114,7 +114,7 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * returns the new observer if successfully observed,
  * or the existing observer if the value already has one.
  * 该方法主要用于观测一个数据：即会为值创建一个observer实例（值的__ob__属性指向了observer实例）。
- * 并且对属性设置getter/setter拦截。
+ * 并且对属性设置getter/setter拦截。深度观测时，为深度优先遍历设置。
  */
 export function observe (value: any, asRootData: ?boolean): Observer | void {
   if (!isObject(value) || value instanceof VNode) {
@@ -125,7 +125,7 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
     // 如果已经观测
     ob = value.__ob__
   } else if (
-    shouldObserve && // 该值希望呗观测
+    shouldObserve && // 该值希望被观测
     !isServerRendering() && // 不是服务器端渲染
     (Array.isArray(value) || isPlainObject(value)) && // 为数组或者纯对象
     Object.isExtensible(value) && // 数据对象必须为可拓展, Object.preventExtensions/freeze/seal可设置成不可拓展

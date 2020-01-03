@@ -3,7 +3,7 @@ import { initGlobalAPI } from './global-api/index'
 import { isServerRendering } from 'core/util/env'
 import { FunctionalRenderContext } from 'core/vdom/create-functional-component'
 
-// 初始化全局api：即在Vue构造函数上定义extend,nextTick,directive,component,filter,use,等等
+// 初始化全局api：即在Vue构造函数上定义extend,nextTick,directive,component,filter,use,options,config等等
 initGlobalAPI(Vue)
 
 Object.defineProperty(Vue.prototype, '$isServer', {
